@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Raise Your Hand — 9/11 Memorial Interactive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --stone:#e9e5dc;--stone2:#e0dbd1;--stone3:#d6d0c4;
+  --ink:#282c33;--ink2:#4e545e;--ink3:#7d838d;--ink4:#a49f96;
+  --bronze:#8a6a3c;--bronze2:#9c7a48;--bronzeL:#b08a54;
+  --petrol:#1d486b;--petrolL:#2f6c9c;
+  --line:#c8c1b4;--lineS:#d6d0c5;--ghost:#d3ccbf;
+  --serif:"Spectral",Georgia,"Times New Roman",serif;
+  --sans:"Public Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --pad:clamp(20px,4.5vw,64px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scroll-behavior:smooth}
+button,input,textarea,select{font:inherit}
+body{background:var(--stone);color:var(--ink);font-family:var(--sans);font-weight:400;
+  -webkit-font-smoothing:antialiased;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;overflow-x:hidden}
+
+/* paper / stone grain */
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.16'/%3E%3C/svg%3E")}
+
+/* the washed sky band — printed, not glowing */
+#sky{position:fixed;top:0;left:0;right:0;height:172px;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(70% 120% at 28% 108%,rgba(255,255,255,.92),rgba(255,255,255,0) 62%),
+    radial-gradient(55% 100% at 68% 100%,rgba(255,255,255,.8),rgba(255,255,255,0) 58%),
+    radial-gradient(90% 140% at 50% -20%,rgba(178,196,210,.55),rgba(178,196,210,0) 70%),
+    linear-gradient(180deg,#c6d2dc 0%,#d8dcd8 40%,var(--stone) 100%);
+  opacity:.95;
+  -webkit-mask-image:linear-gradient(180deg,#000 62%,transparent 100%);
+  mask-image:linear-gradient(180deg,#000 62%,transparent 100%)}
+
+header{position:relative;z-index:3;padding:20px var(--pad) 0;display:grid;
+  grid-template-columns:1fr auto 1fr;align-items:start;gap:16px}
+.hl,.hr{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;line-height:1.55}
+.hl{color:var(--ink2)}
+.hr{color:var(--bronze);text-align:right}
+.hl::after,.hr::after{content:"";display:block;width:52px;height:1px;background:var(--line);margin-top:9px}
+.hr::after{margin-left:auto}
+.hc{font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--ink2);
+  font-weight:500;text-align:center;padding-top:2px}
+.notes-btn{background:none;border:1px solid var(--line);color:var(--ink2);font-family:var(--sans);
+  font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;padding:7px 12px;border-radius:2px;
+  cursor:pointer;transition:.2s;margin-top:10px}
+.notes-btn:hover{border-color:var(--petrol);color:var(--petrol);background:rgba(29,72,107,.05)}
+.hr-wrap{display:flex;flex-direction:column;align-items:flex-end}
+
+main{position:relative;z-index:3;flex:1;width:100%;max-width:1120px;margin:0 auto;
+  padding:clamp(18px,4vh,54px) var(--pad);display:flex;flex-direction:column;justify-content:center}
+
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(32px,6vw,62px);line-height:1.06;letter-spacing:-.015em}
+h2{font-family:var(--serif);font-weight:400;font-size:clamp(26px,4.4vw,44px);line-height:1.12;letter-spacing:-.012em}
+.lede{font-size:clamp(14.5px,1.45vw,16.5px);line-height:1.7;color:var(--ink2);max-width:56ch;margin-top:18px;font-weight:400}
+.lede.tight{margin-top:10px}
+.tag{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--bronze);font-weight:700;display:block;margin-bottom:15px}
+.tag.blue{color:var(--petrol)}
+
+.count{font-family:var(--serif);font-weight:400;font-size:clamp(58px,14vw,158px);line-height:.86;letter-spacing:-.03em;color:var(--ink)}
+.count-unit{font-family:var(--sans);font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--ink2);font-weight:600;margin-top:16px;display:block}
+
+.screen{display:none}
+.screen.on{display:block;animation:rise .6s cubic-bezier(.16,.8,.28,1)}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+
+.choices{margin-top:32px;border-top:1px solid var(--line)}
+.choice{width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--lineS);
+  color:var(--ink);font-family:var(--sans);font-weight:400;font-size:clamp(15.5px,2vw,18.5px);
+  padding:18px 44px 18px 2px;cursor:pointer;position:relative;
+  transition:padding .3s cubic-bezier(.16,.8,.28,1),background .25s,color .2s}
+.choice:hover,.choice:focus-visible{padding-left:18px;background:rgba(29,72,107,.055);color:var(--petrol);outline:none}
+.choice:focus-visible{box-shadow:inset 2px 0 0 var(--petrol)}
+.choice::after{content:"";position:absolute;right:16px;top:50%;width:15px;height:1px;background:var(--petrol);opacity:0;transition:.3s}
+.choice:hover::after,.choice:focus-visible::after{opacity:1;right:8px}
+.choice small{display:block;font-size:12.5px;color:var(--ink3);margin-top:4px;line-height:1.45;font-weight:400}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px}
+.chip{background:none;border:1px solid var(--line);color:var(--ink2);font-family:var(--sans);
+  font-size:13px;font-weight:500;padding:9px 15px;border-radius:100px;cursor:pointer;transition:.18s}
+.chip:hover{border-color:var(--petrol);color:var(--petrol)}
+.chip[aria-pressed="true"]{background:var(--petrol);border-color:var(--petrol);color:#fff}
+
+.field{margin-top:26px;max-width:580px}
+label.fl{display:block;font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink2);margin-bottom:9px;font-weight:700}
+input[type=text],input[type=number],textarea,select{width:100%;background:rgba(255,255,255,.55);
+  border:1px solid var(--line);color:var(--ink);font-family:var(--sans);font-size:16px;
+  font-weight:400;padding:13px 15px;border-radius:2px}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--petrol);outline-offset:1px;border-color:transparent}
+textarea{resize:vertical;min-height:78px;line-height:1.55;font-family:var(--serif);font-size:17px}
+.counter{font-size:11px;color:var(--ink3);margin-top:7px;text-align:right;letter-spacing:.05em}
+
+.mobile-year-field{display:none;margin-top:24px;max-width:220px}
+.mobile-help{display:none;font-size:12px;line-height:1.55;color:var(--ink3);margin-top:9px}
+.submit-note{margin-top:22px;padding:14px 16px;border:1px solid var(--lineS);background:rgba(255,255,255,.28);max-width:580px}
+.submit-note p{font-size:12.5px;line-height:1.55;color:var(--ink2)}
+.consent{display:flex;align-items:flex-start;gap:10px;margin-top:12px;cursor:pointer;color:var(--ink2);font-size:12.5px;line-height:1.5}
+.consent input{flex:0 0 auto;width:18px;height:18px;margin-top:1px;accent-color:var(--petrol)}
+.form-status{min-height:20px;margin-top:12px;font-size:12.5px;line-height:1.5;color:var(--ink2)}
+.form-status.error{color:#7b2d2d}.form-status.ok{color:var(--petrol)}
+.hp{position:absolute!important;left:-10000px!important;width:1px!important;height:1px!important;overflow:hidden!important}
+.kind.community{border-color:var(--petrol);color:var(--petrol)}
+
+.row{display:flex;gap:11px;margin-top:32px;flex-wrap:wrap;align-items:center}
+.btn{background:var(--petrol);color:#fff;border:0;border-radius:2px;font-family:var(--sans);
+  font-weight:600;font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;
+  padding:14px 26px;cursor:pointer;transition:.2s}
+.btn:hover{background:#16395a}
+.btn:disabled{opacity:.3;cursor:not-allowed}
+.btn.ghost{background:none;color:var(--ink2);border:1px solid var(--line);font-weight:500}
+.btn.ghost:hover{color:var(--petrol);border-color:var(--petrol);background:rgba(29,72,107,.05)}
+.btn.quiet{background:none;color:var(--ink3);border:0;padding:14px 4px;font-weight:400;
+  text-transform:none;letter-spacing:0;font-size:13.5px;
+  text-decoration:underline;text-underline-offset:4px;text-decoration-color:var(--line)}
+.btn.quiet:hover{color:var(--ink)}
+
+/* ---------- THE TIMELINE ---------- */
+.tl-wrap{position:relative;z-index:3;border-top:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(214,208,196,0),rgba(214,208,196,.4));padding:0 0 8px}
+.tl-scroll{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+.tl{display:flex;align-items:flex-start;gap:0;min-width:940px;max-width:1180px;
+  margin:0 auto;padding:16px var(--pad) 4px;position:relative}
+
+.pre-block{flex:0 0 130px;border:1px dashed var(--bronze2);border-radius:3px;
+  background:rgba(138,106,60,.06);padding:9px 10px 11px;cursor:pointer;transition:.22s;
+  display:flex;flex-direction:column;align-items:center;gap:9px;margin-right:16px}
+.pre-block:hover,.pre-block[aria-pressed="true"]{background:rgba(138,106,60,.16);border-color:var(--bronze)}
+.pre-block .pbl{font-size:8.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--bronze);
+  font-weight:700;line-height:1.5;text-align:center;font-family:var(--sans)}
+.pre-dots{display:flex;align-items:center;justify-content:center;gap:5px;height:18px;flex-wrap:wrap}
+.pre-dots i{display:block;border-radius:50%;background:var(--petrol);opacity:.85}
+.pre-block[aria-pressed="true"] .pre-dots i{opacity:1;box-shadow:0 0 0 2px rgba(29,72,107,.2)}
+.pre-dots i.mine{background:var(--bronze);box-shadow:0 0 0 3px rgba(138,106,60,.25)}
+
+.seam{flex:0 0 1px;align-self:stretch;background:var(--bronze2);opacity:.5;margin-right:16px;position:relative}
+.seam::after{content:"9/11";position:absolute;top:-2px;left:50%;transform:translateX(-50%);
+  font-size:7.5px;letter-spacing:.12em;color:var(--bronze);font-weight:700;font-family:var(--sans);white-space:nowrap}
+
+.years{flex:1;display:flex;position:relative}
+.spine{position:absolute;left:0;right:0;top:32px;height:1px;background:var(--line)}
+.ycol{flex:1;background:none;border:0;padding:0;cursor:pointer;display:flex;flex-direction:column;
+  align-items:center;font-family:var(--sans);position:relative;z-index:2;min-width:0}
+.dia{width:9px;height:9px;background:var(--bronze);transform:rotate(45deg);margin-bottom:6px;
+  opacity:0;transition:.22s}
+.ycol[data-ev="1"] .dia{opacity:1}
+.mk{width:22px;height:22px;display:flex;align-items:center;justify-content:center;margin-top:0}
+.mk i{display:block;border-radius:50%;background:var(--petrol);width:5px;height:5px;
+  transition:.28s cubic-bezier(.2,.8,.3,1)}
+.ycol[data-n="0"] .mk i{width:4px;height:4px;background:none;border:1px solid var(--line)}
+.ycol[data-n="1"] .mk i{width:9px;height:9px}
+.ycol[data-n="2"] .mk i{width:13px;height:13px}
+.ycol[data-n="3"] .mk i{width:18px;height:18px}
+.ycol .yr{font-size:10px;color:var(--ink2);margin-top:8px;letter-spacing:.03em;font-weight:500;transition:.2s}
+.ycol .ct{font-size:12px;color:var(--ink);font-weight:600;margin-top:3px;line-height:1;transition:.2s}
+.ycol .ctl{font-size:6.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);
+  margin-top:2px;font-weight:600;transition:.2s}
+.ycol:hover .yr,.ycol:hover .ct{color:var(--petrol)}
+.ycol:hover .mk i{background:var(--petrolL)}
+.ycol[aria-pressed="true"] .mk i{box-shadow:0 0 0 4px var(--stone),0 0 0 5px var(--petrol)}
+.ycol[aria-pressed="true"] .yr,.ycol[aria-pressed="true"] .ct{color:var(--petrol);font-weight:700}
+.ycol[aria-pressed="true"] .ct{border-bottom:2px solid var(--petrol);padding-bottom:3px}
+.ycol.mine .mk i{background:var(--bronze)}
+.ycol.mine .yr{color:var(--bronze)}
+@keyframes drop{0%{transform:translateY(-22px) scale(.2);opacity:0}
+  65%{transform:translateY(2px) scale(1.12);opacity:1}100%{transform:none;opacity:1}}
+.ycol.dropped .mk i,.pre-dots i.dropped{animation:drop .75s cubic-bezier(.18,.85,.3,1)}
+
+.tl-foot{border-top:1px solid var(--lineS);margin:6px auto 0;max-width:1180px;
+  padding:11px var(--pad) 4px;display:flex;align-items:center;justify-content:center;gap:18px;position:relative}
+.hint{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--petrol);font-weight:600}
+.tl-count{position:absolute;left:var(--pad);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);font-weight:600}
+.helpb{position:absolute;right:var(--pad);display:flex;align-items:center;gap:9px;
+  background:none;border:0;cursor:pointer;font-family:var(--sans)}
+.helpb span.c{width:26px;height:26px;border:1px solid var(--petrol);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;color:var(--petrol);font-size:13px;font-weight:600}
+.helpb span.t{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink2);font-weight:600}
+.helpb:hover span.c{background:var(--petrol);color:#fff}
+
+/* ---------- mirror ---------- */
+.mirror p{font-family:var(--serif);font-weight:400;font-size:clamp(21px,3vw,33px);
+  line-height:1.36;max-width:23ch;letter-spacing:-.008em}
+.mirror p+p{margin-top:18px;font-size:clamp(16.5px,2.1vw,22px);line-height:1.52;max-width:36ch;
+  color:var(--ink2);font-weight:400}
+.mirror .hl2{color:var(--petrol)}.mirror .bz{color:var(--bronze)}
+.placed{margin-top:30px;border-left:2px solid var(--petrol);padding:5px 0 5px 18px;
+  font-size:14px;line-height:1.6;color:var(--ink2);max-width:46ch}
+.placed b{color:var(--ink);font-weight:600}
+
+/* ---------- voice ---------- */
+.voice{position:relative;margin-top:26px;animation:fade .5s ease}
+.voice-year{font-family:var(--serif);font-weight:400;font-size:clamp(50px,9.5vw,104px);
+  line-height:.82;color:var(--ghost);letter-spacing:-.03em;user-select:none}
+.voice-year.pre{font-size:clamp(24px,4.4vw,44px);color:var(--stone3)}
+.voice-name{font-family:var(--serif);font-weight:400;font-size:clamp(26px,4.2vw,44px);
+  line-height:1.1;margin-top:-10px;letter-spacing:-.012em;position:relative}
+.voice-rule{width:64px;height:2px;background:var(--bronze);margin-top:14px}
+.voice-role{font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--bronze);font-weight:700;margin-top:13px}
+.voice-body{font-family:var(--serif);font-weight:400;font-size:clamp(16.5px,2vw,21px);
+  line-height:1.62;max-width:48ch;margin-top:19px;color:var(--ink);text-align:justify;hyphens:auto}
+.voice-body q{font-style:italic;color:var(--petrol)}
+.voice-body q::before{content:"\201C"}.voice-body q::after{content:"\201D"}
+.voice-src{margin-top:22px;padding-top:14px;border-top:1px solid var(--lineS);
+  display:flex;gap:13px;align-items:baseline;flex-wrap:wrap;font-size:11px;color:var(--ink3)}
+.voice-src a{color:var(--petrol);text-decoration:none;border-bottom:1px solid var(--line);padding-bottom:1px}
+.voice-src a:hover{border-color:var(--petrol)}
+.kind{border:1px solid var(--line);border-radius:2px;padding:3px 7px;font-size:8px;
+  letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--ink2)}
+.kind.pre,.kind.rec{border-color:var(--bronze2);color:var(--bronze)}
+.kind.you{border-color:var(--petrol);color:var(--petrol)}
+.kind.seam{border-color:var(--bronze);color:var(--bronze);background:rgba(138,106,60,.1)}
+
+.nav-voices{display:flex;align-items:center;gap:15px;margin-top:24px}
+.nav-voices button{background:none;border:1px solid var(--line);color:var(--ink2);width:37px;height:37px;
+  border-radius:50%;cursor:pointer;font-size:14px;transition:.2s;font-family:var(--sans)}
+.nav-voices button:hover:not(:disabled){border-color:var(--petrol);color:var(--petrol)}
+.nav-voices button:disabled{opacity:.28;cursor:not-allowed}
+.nav-count{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink3);font-weight:600}
+
+.anchor{margin-top:22px;border-left:2px solid var(--bronze);padding:3px 0 3px 18px}
+.anchor+.anchor{margin-top:15px}
+.anchor .k{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--bronze);font-weight:700}
+.anchor .v{font-size:14.5px;line-height:1.6;margin-top:6px;color:var(--ink2);max-width:54ch}
+.empty{margin-top:24px;color:var(--ink3);font-size:15px;line-height:1.65;max-width:46ch;font-family:var(--serif)}
+
+/* ---------- panel ---------- */
+.panel{position:fixed;inset:0;z-index:60;background:rgba(40,44,51,.5);display:none;
+  padding:var(--pad);overflow-y:auto;backdrop-filter:blur(3px)}
+.panel.on{display:block;animation:fade .3s ease}
+.panel-inner{max-width:790px;margin:0 auto;background:var(--stone);border:1px solid var(--line);
+  border-radius:3px;padding:clamp(26px,4vw,46px);box-shadow:0 18px 48px rgba(40,44,51,.22)}
+.panel h3{font-family:var(--serif);font-weight:500;font-size:29px;margin-bottom:8px}
+.panel h4{font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--bronze);
+  font-weight:700;margin-top:28px;margin-bottom:10px}
+.panel p,.panel li{font-size:14px;line-height:1.7;color:var(--ink2)}
+.panel li{margin-bottom:8px}.panel ul{padding-left:19px}
+.panel strong{color:var(--ink);font-weight:600}
+.panel a{color:var(--petrol);text-decoration:none;border-bottom:1px solid var(--line)}
+.close-x{float:right;background:none;border:0;color:var(--ink3);font-size:25px;cursor:pointer;line-height:1}
+.close-x:hover{color:var(--ink)}
+
+@media (max-width:900px){
+  .mirror p{max-width:100%}
+  header{grid-template-columns:1fr auto;gap:10px}
+  .hc{display:none}
+}
+@media (max-width:700px){
+  :root{--pad:18px}
+  body{padding-bottom:max(0px,env(safe-area-inset-bottom))}
+  #sky{height:128px}
+  header{padding-top:14px;align-items:start}
+  .hl,.hr{font-size:8.5px;line-height:1.4}
+  .hl::after,.hr::after{width:38px;margin-top:6px}
+  .notes-btn{font-size:8.5px;padding:7px 9px;margin-top:7px}
+  main{padding-top:22px;padding-bottom:26px;justify-content:flex-start}
+  .count{font-size:clamp(58px,22vw,92px)}
+  .count-unit{font-size:9.5px;letter-spacing:.18em}
+  h2{font-size:clamp(28px,9vw,38px)}
+  .lede{font-size:15px;line-height:1.62}
+  .choice{min-height:58px;padding-top:16px;padding-bottom:16px}
+  .row{display:grid;grid-template-columns:1fr;margin-top:26px}
+  .row .btn{width:100%;min-height:48px}
+  .row .btn.quiet{order:2}
+  .mobile-year-field,.mobile-help{display:block}
+  .field{max-width:none}
+  .voice-body{text-align:left;hyphens:none;font-size:18px;line-height:1.58}
+  .voice-name{font-size:clamp(29px,9vw,39px)}
+  .voice-year{font-size:clamp(54px,18vw,86px)}
+  .panel{padding:10px}
+  .panel-inner{padding:22px 18px;margin-top:max(0px,env(safe-area-inset-top))}
+  .tl-scroll{scroll-snap-type:x proximity;scrollbar-width:thin;overscroll-behavior-x:contain}
+  .tl{min-width:max-content;max-width:none;margin:0;padding:14px 16px 5px}
+  .pre-block{flex:0 0 112px;min-height:92px;margin-right:12px;scroll-snap-align:start}
+  .seam{margin-right:12px}
+  .years{flex:none;width:max-content}
+  .spine{top:35px}
+  .ycol{flex:0 0 52px;width:52px;min-height:88px;scroll-snap-align:center;touch-action:manipulation}
+  .mk{width:44px;height:28px}
+  .ycol .yr{font-size:10px;margin-top:7px}
+  .ycol .ct{font-size:11px}
+  .ycol .ctl{font-size:6px}
+  .tl-foot{padding:10px 16px 8px;justify-content:flex-start;gap:10px}
+  .hint{font-size:9px;letter-spacing:.11em;line-height:1.4}
+  .tl-count{display:none}
+  .hint::before{content:"Swipe · "}
+  .helpb{position:static;margin-left:auto;flex:0 0 auto}
+  .helpb span.t{display:none}
+  .helpb span.c{width:32px;height:32px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="sky"></div>
+
+<header>
+  <div class="hl">Raise<br>Your Hand</div>
+  <div class="hc">One morning · twenty-five years of consequence</div>
+  <div class="hr-wrap">
+    <div class="hr">University<br>Veterans<br>Center</div>
+    <button class="notes-btn" id="notesBtn">Sources &amp; notes</button>
+  </div>
+</header>
+
+<main>
+
+  <section class="screen on" id="s-open">
+    <span class="tag">September 11 Memorial · Interactive</span>
+    <div class="count" id="dayCount">0</div>
+    <span class="count-unit">days since that morning</span>
+    <p class="lede">The attacks lasted 102 minutes. What they set in motion ran for twenty-five years — through people who enlisted that week, people who were in fourth grade, people not yet born, and people who were already in uniform and had no say in it at all.</p>
+    <p class="lede tight">This is that line, and the voices along it. Add yours.</p>
+    <div class="row">
+      <button class="btn" data-go="s-path">Begin</button>
+      <button class="btn quiet" id="walkBtn">Walk the line instead</button>
+    </div>
+  </section>
+
+  <section class="screen" id="s-path">
+    <span class="tag">One of three</span>
+    <h2>How did that day reach you?</h2>
+    <div class="choices" id="pathList"></div>
+  </section>
+
+  <section class="screen" id="s-year">
+    <span class="tag">Two of three</span>
+    <h2 id="yearQ">What year did you raise your hand?</h2>
+    <p class="lede">Choose it from the timeline at the bottom of the screen.</p>
+    <div class="mobile-year-field">
+      <label class="fl" for="mobileYear">Year</label>
+      <select id="mobileYear" aria-label="Choose a year">
+        <option value="">Choose a year</option>
+      </select>
+      <p class="mobile-help">On a phone, you can use this menu or swipe across the timeline below.</p>
+    </div>
+    <div class="row">
+      <button class="btn" id="yearNext" disabled>Continue</button>
+      <button class="btn quiet" data-go="s-path">Back</button>
+    </div>
+  </section>
+
+  <section class="screen" id="s-yearpre">
+    <span class="tag">Two of three</span>
+    <h2>What year did you enter service?</h2>
+    <p class="lede">Any year. The line runs back well before 2001 — the earliest voice on it entered the Army in 1976.</p>
+    <div class="field" style="max-width:186px">
+      <label class="fl" for="preYear">Year you came in</label>
+      <input type="number" id="preYear" min="1940" max="2001" placeholder="1986" inputmode="numeric">
+    </div>
+    <div class="row">
+      <button class="btn" id="preNext" disabled>Continue</button>
+      <button class="btn quiet" data-go="s-path">Back</button>
+    </div>
+  </section>
+
+  <section class="screen" id="s-why">
+    <span class="tag">Three of three</span>
+    <h2 id="whyQ">What made you raise your hand?</h2>
+    <p class="lede" id="whySub">Pick as many as are true. There is no expected answer — the recorded ones range from grief to the GI Bill.</p>
+    <form id="storyForm" name="story-submission" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+      <input type="hidden" name="form-name" value="story-submission">
+      <p class="hp" aria-hidden="true"><label>Do not fill this out: <input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
+      <input type="hidden" id="formPath" name="path">
+      <input type="hidden" id="formQuestion" name="question_type">
+      <input type="hidden" id="formYear" name="service_year">
+      <input type="hidden" id="formReasons" name="reasons">
+      <input type="hidden" id="formSubmittedAt" name="submitted_at">
+      <div class="chips" id="whyChips"></div>
+      <div class="field">
+        <label class="fl" for="oneLine">One line, if you want to leave one</label>
+        <textarea id="oneLine" name="story" maxlength="150" placeholder="Something you remember."></textarea>
+        <div class="counter"><span id="cnt">0</span> / 150</div>
+      </div>
+      <div class="field">
+        <label class="fl" for="attrib">How should it be signed?</label>
+        <input type="text" id="attrib" name="attribution" maxlength="44" placeholder="A name, a branch, a class year — or leave it blank" autocomplete="off">
+      </div>
+      <div class="submit-note">
+        <p>Submissions are stored privately for Military and Veterans Center staff review. They do not appear publicly until approved. Please do not include phone numbers, email addresses, or other private information.</p>
+        <label class="consent"><input type="checkbox" id="permission" name="permission" value="May be publicly displayed after staff review" required><span>I understand that this entry may be publicly displayed after staff review.</span></label>
+      </div>
+      <div class="form-status" id="formStatus" role="status" aria-live="polite"></div>
+      <div class="row">
+        <button class="btn" id="whyNext" type="submit">Submit &amp; continue</button>
+        <button class="btn quiet" id="skipWhy" type="button">Continue without submitting</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="screen" id="s-birth">
+    <span class="tag">Last thing</span>
+    <h2>What year were you born?</h2>
+    <p class="lede">This places you against that morning, and finds you someone who was your age that day.</p>
+    <div class="field" style="max-width:186px">
+      <label class="fl" for="birth">Birth year</label>
+      <input type="number" id="birth" min="1915" max="2026" placeholder="2004" inputmode="numeric">
+    </div>
+    <div class="row">
+      <button class="btn" id="birthNext" disabled>See where I land</button>
+      <button class="btn quiet" id="skipBirth">Skip</button>
+    </div>
+  </section>
+
+  <section class="screen" id="s-mirror">
+    <span class="tag">Where you land</span>
+    <div class="mirror" id="mirrorText"></div>
+    <div id="placedSlot"></div>
+    <div id="mirrorMatch"></div>
+    <div class="row">
+      <button class="btn" data-go="s-line">See the whole line</button>
+    </div>
+  </section>
+
+  <section class="screen" id="s-line">
+    <span class="tag blue">The line</span>
+    <h2 id="lineHead">Choose a year</h2>
+    <p class="lede" id="lineSub">The dashed block on the left holds everyone who was already serving. Bronze diamonds mark events. Blue circles are people.</p>
+    <div id="anchorSlot"></div>
+    <div id="voiceSlot"></div>
+    <div class="row">
+      <button class="btn ghost" id="walkBtn2">Walk the line</button>
+      <button class="btn quiet" data-go="s-open">Start over</button>
+    </div>
+  </section>
+
+  <section class="screen" id="s-walk">
+    <span class="tag blue">Walking the line · every voice, in order</span>
+    <div id="walkSlot"></div>
+    <div class="row">
+      <button class="btn ghost" data-go="s-line">Back to the line</button>
+    </div>
+  </section>
+
+</main>
+
+<div class="tl-wrap">
+  <div class="tl-scroll">
+    <div class="tl">
+      <button class="pre-block" id="preBlock" aria-pressed="false" aria-label="Voices from before 2001">
+        <span class="pbl">Already<br>serving<br>before 2001</span>
+        <span class="pre-dots" id="preDots"></span>
+      </button>
+      <div class="seam"></div>
+      <div class="years" id="years"><div class="spine"></div></div>
+    </div>
+  </div>
+  <div class="tl-foot">
+    <span class="tl-count" id="ribbonCount" aria-live="polite"></span>
+    <span class="hint">Touch a timeline marker to view a story</span>
+    <button class="helpb" id="helpBtn"><span class="c">?</span><span class="t">Help</span></button>
+  </div>
+</div>
+
+<div class="panel" id="panel">
+  <div class="panel-inner">
+    <button class="close-x" id="closeX" aria-label="Close">×</button>
+    <h3 id="panelTitle">Sources &amp; notes</h3>
+    <div id="panelBody">
+    <p>Working prototype. Published stories are static and read-only. New visitor entries are submitted privately through Netlify Forms for staff review; they do not appear publicly until approved and added to the published story file.</p>
+
+    <h4>Where the voices come from</h4>
+    <p>Every account here belongs to a real, named person and was published by a named outlet. Each is retold in the exhibit's own words with a link back to the original — these are summaries, not licensed reproductions. Reporting by the <em>Tennessee Register</em>, TIME, the USO, the Associated Press, <em>The World</em> (PRX), Connecting Vets, American Forces Press Service, and Military.com, 2011–2025.</p>
+    <p><strong>Before any of this goes on a public screen,</strong> comms should either link out to each original or secure permission from the publisher — and ideally from the veteran.</p>
+
+    <h4>A note on density</h4>
+    <p>Most years on this timeline currently show one or two voices, or none. That is honest: it reflects what we have actually sourced, not what the exhibit could hold. The mockups showed a dozen or more per year. Filling the line is the collection work, and it is the main thing standing between this prototype and a finished exhibit.</p>
+
+    <h4>On the pre-2001 voices</h4>
+    <p>Six accounts belong to people already in uniform that morning: a Green Beret who had been planning to retire, a Night Stalker pilot, a Guard officer doing one weekend a month, a warrant officer training in Saudi Arabia, an Army chaplain from Ghana stationed in Germany, and an eighteen-year-old who volunteered for the Air Force on September 10th.</p>
+    <p>They matter because they are the only people on this line who did not choose. Everyone after 2001 decided something. This group had it decided for them — and then absorbed twenty years of consequence. For a Military and Veterans Center audience, they are likely a large share of the room.</p>
+
+    <h4>Getting our own voices</h4>
+    <ul>
+      <li><a href="https://www.loc.gov/programs/veterans-history-project/" target="_blank" rel="noopener">Veterans History Project</a> (Library of Congress) — over 121,000 collections as of May 2025, more than 96,000 online. Note: <strong>copyright stays with the veteran</strong>, so it's a place to find people, not to take clips from freely.</li>
+      <li><a href="https://www.glo.texas.gov/veterans/voices-veterans" target="_blank" rel="noopener">Voices of Veterans</a> (Texas General Land Office) — Texas narrators, World War II through the War on Terror.</li>
+      <li>StoryCorps Military Voices Initiative — short, well-produced audio.</li>
+      <li>On campus and nearby: UTD's student veteran community, DFW-area VFW and American Legion posts, and interviews we record at the event.</li>
+    </ul>
+
+    <h4>Design decisions worth defending</h4>
+    <ul>
+      <li><strong>Built for a bright room.</strong> Pale stone rather than dark, because a dark screen under Student Union lighting becomes a mirror. Still needs testing on the actual display in the actual room.</li>
+      <li><strong>Not in UTD green and orange.</strong> Memorial exhibits conventionally step outside institutional branding, the same way a plaque isn't set in a university's marketing palette.</li>
+      <li><strong>No veteran / non-veteran gate.</strong> Six paths, everyone gets one. Asking people to self-identify as a veteran at the door turns some of them away.</li>
+      <li><strong>Two different questions.</strong> People who enlisted after are asked what made them raise their hand. People already in are asked what changed — "why did you join" is the wrong question for someone who joined in 1976.</li>
+      <li><strong>Everything is skippable.</strong> Recounting why you enlisted, at a 9/11 memorial, can surface more than someone expected.</li>
+    </ul>
+
+    <h4>Still needed</h4>
+    <ul>
+      <li>A staff-owned moderation workflow for reviewing Netlify submissions and moving approved entries into the published story file.</li>
+      <li><strong>Nothing user-submitted should reach a public screen unreviewed.</strong> The current build stores new entries privately and requires a separate approval step.</li>
+      <li>Written permissions for any account shown at length.</li>
+      <li>A staffed table rather than an unattended kiosk.</li>
+      <li>Accessibility pass: screen reader, large-text mode, seated-height screen.</li>
+    </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+var START=2001,END=2026;
+
+var ANCHORS={
+ 2001:[{k:"September 11, 2001",v:"Attacks on the World Trade Center, the Pentagon, and United Flight 93."},
+  {k:"October 7, 2001",v:"U.S. military operations begin in Afghanistan. Special forces units already overseas were moving within weeks."},
+  {k:"November 19, 2001",v:"The Aviation and Transportation Security Act creates the TSA."}],
+ 2002:[{k:"The first full year",v:"In the year following the attacks, 181,510 Americans enlisted in active duty service and 72,908 joined the enlisted reserves — figures cited by the USO and the NYC Department of Veterans' Services."},
+  {k:"November 25, 2002",v:"The Homeland Security Act is signed, creating the Department of Homeland Security."}],
+ 2003:[{k:"March 20, 2003",v:"The invasion of Iraq begins."}],
+ 2008:[{k:"June 30, 2008",v:"The Post-9/11 Veterans Educational Assistance Act is enacted."}],
+ 2009:[{k:"August 1, 2009",v:"The Post-9/11 GI Bill takes effect, covering full in-state tuition at public universities plus a housing allowance — the benefit that puts many student veterans at UTD."}],
+ 2011:[{k:"May 2, 2011",v:"Osama bin Laden is killed in Pakistan."},
+  {k:"December 18, 2011",v:"The last U.S. troops leave Iraq."}],
+ 2018:[{k:"September 2018",v:"The first Americans born after September 11, 2001 became old enough to enlist. Military.com reported recruiters were now meeting teenagers with no memory of the attacks at all."}],
+ 2019:[{k:"Pew Research Center, 2019",v:"Roughly three-quarters of post-9/11 veterans were deployed at least once, against 58% of those who served before them — and they are about twice as likely to have served in a combat zone."}],
+ 2021:[{k:"August 30, 2021",v:"The U.S. withdrawal from Afghanistan is completed, ending the longest war in American history."}],
+ 2025:[{k:"Congressional Research Service",v:"In FY2025 the Post-9/11 GI Bill was estimated to benefit almost 600,000 people at a cost of over $10 billion — twenty-four years of consequence, still being paid."}]
+};
+
+var TR="Tennessee Register, 2021",
+    TRU="https://tennesseeregister.com/for-veterans-9-11-changed-trajectory-of-their-military-careers/";
+
+var VOICES=[
+ {y:1976,pre:1,name:"John Schuller",role:"U.S. Army 1976–2006 · 5th Special Forces Group",kind:"pre",
+  body:"He came in as an infantryman and airborne ranger and finished as a special forces warrant officer. Italy, West Berlin, Bosnia, Kosovo — he was no stranger to deploying long before 2001. He was also, that summer, planning to retire: the service had put years of strain on his family. Then the planes hit, and he knew his unit at Fort Campbell would be among the first out. They were out of the country by the beginning of October. Afghanistan into the spring, then Iraq in 2003, 2004 and 2005. He served five more years past the retirement he had already decided on.",
+  src:TR,url:TRU},
+ {y:1983,pre:1,name:"Robin Vozar",role:"U.S. Army 1983–2020 · 160th Special Operations Aviation Regiment",kind:"pre",
+  body:"Thirty-seven years, most of them with the Night Stalkers at Fort Campbell — the longest-serving member the unit has had. He was used to deploying well before 2001; as he put it, if helicopters were going somewhere, it was probably his regiment taking them. Iraq in 2009, and Afghanistan repeatedly after that. He now runs the association that keeps the regiment's dead accounted for, on the principle that nobody in it died in vain.",
+  src:TR,url:TRU},
+ {y:1985,pre:1,name:"John Veltri",role:"U.S. Army 1985–2013 · 5th Special Forces Group",kind:"pre",
+  body:"On the morning itself he was in Saudi Arabia, training with foreign militaries — ordinary work for his unit. Every scheduled training was cancelled. Virtually the whole unit packed its equipment and moved to a neighboring country to prepare for the invasion of Afghanistan. By the autumn of 2002 they were preparing for Iraq instead. From 2003 until the withdrawal in 2012 there was exactly one year — 2006 — in which he did not set foot in Iraq.",
+  src:TR,url:TRU},
+ {y:1986,pre:1,name:"John Krenson",role:"Tennessee Army National Guard 1986–2016 · retired colonel",kind:"pre",
+  body:"For fifteen years the Guard was one weekend a month, a few weeks each summer, training trips to Panama and Bulgaria. He walked into his own business that morning to find his partner and three employees silent in front of the television, and watched the second plane hit. He turned to his friend and said he didn't know whether it would be two weeks, two months or two years — <q>I guarantee you, I'm going somewhere because of this.</q> The orders came in August 2003. He spent the second anniversary in Kabul under rocket attack, one hand on his weapon and the other on a rosary in his pocket. He deployed again to Iraq in 2010, commanding more than 1,100 troops.",
+  src:TR,url:TRU},
+ {y:null,pre:1,name:"Father Tettey Bleboo",role:"U.S. Army chaplain · retired colonel · born in Ghana",kind:"pre",
+  body:"He was stationed in Germany as an Army chaplain that morning, a naturalized citizen who had come from Ghana in the 1990s. He first deployed to Afghanistan in 2003, when conditions were rudimentary, and again in 2013, when he found the place transformed past recognition. A chaplain's twenty years look different from a rifleman's: his work was to be present with soldiers, care for the wounded, and honor the dead. He retired a colonel in 2019.",
+  src:TR,url:TRU},
+ {y:2001,pre:1,seam:1,name:"Jacquelyn Schneider",role:"U.S. Air Force · volunteered September 10, 2001",kind:"seam",
+  body:"<q>On September 10th, 2001, I volunteered to serve in the Air Force.</q> She was eighteen, a college freshman in New York City. The next day the world changed, and she found herself in a generation she describes as bookended — the towers at one end, the retreat from Afghanistan at the other. A generation whose chapter closed with no closure: no parades, no protests, no reckoning between a returning military and the society it came from. It was simply over.",
+  src:"TIME, 2023",url:"https://time.com/6312534/9-11-veterans-legacy/"},
+
+ {y:2001,name:"A veteran who asked not to be named",role:"Enlisted within days",kind:"voice",
+  body:"A co-worker of his died aboard Flight 77. He enlisted almost immediately. What pushed him, he said afterward, was noticing that everyone around him kept saying <q>we</q> were going to fight — and meaning someone else. Fifteen years and several deployments later, he described no regret about it.",
+  src:"The World (PRX), 2016",url:"https://theworld.org/stories/2016/09/08/911-veterans"},
+ {y:2002,name:"Josh Revak",role:"U.S. Army",kind:"voice",
+  body:"He was twenty that September, living alone in a small apartment. The way he described it years later, the feeling was not fury but insufficiency — a sense that he should be doing more with his life than he was. By January he was in basic training.",
+  src:"USO, 2016 interview",url:"https://www.uso.org/stories/2849-why-9-11-inspired-these-patriots-to-join-the-military"},
+ {y:2002,name:"Dagel",role:"U.S. Army Rangers",kind:"voice",
+  body:"He told his father, a Vietnam veteran, that he wanted to enlist that week. His father told him to finish his last year of college first — <q>This isn't going to be over quickly.</q> He was right. Dagel enlisted in December 2002, turning down tryout offers from the Denver Broncos and the Minnesota Vikings, and turned down a commission so he could go straight to Ranger selection.",
+  src:"Connecting Vets, 2021",url:"https://www.audacy.com/connectingvets/news/army-rangers-why-enlisted-after-september-11-attacks"},
+ {y:2003,name:"Michelle Nicholson",role:"U.S. Army Reserve · Iraq veteran · Chino, California",kind:"voice",
+  body:"She was careful to say the attacks motivated her but were not the only reason. An immigrant, she described feeling called to support the country she had come to call home. She enlisted in 2003.",
+  src:"The World (PRX), 2016",url:"https://theworld.org/stories/2016/09/08/911-veterans"},
+ {y:2011,name:"Matthew Locklair",role:"U.S. Army officer candidate · South Carolina",kind:"voice",
+  body:"He was in seventh-grade science when his teacher announced there had been an attack on America. He thought she meant the town hall in Summerville. Understanding what had actually been lost took him years. He never considered enlisting until he studied abroad in Cairo, learned about defense policy and the attacks there, and signed up at twenty-two.",
+  src:"Associated Press via Global News, 2011",url:"https://globalnews.ca/news/150886/10-years-after-9-11-young-military-recruits-still-cite-attacks-as-a-reason-to-join/"},
+ {y:2011,name:"Tim Freeman",role:"U.S. Marine Corps recruit · Beaufort, South Carolina",kind:"voice",
+  body:"He was in fifth grade. His father pulled him out of school after the first plane hit, and what he remembers is confusion — every adult either crying or stone-faced, and none of it registering as catastrophe. Days later, once it had been explained to him, he made himself a promise to join. He was twenty when he did.",
+  src:"Associated Press via The Seattle Times, 2011",url:"https://www.seattletimes.com/nation-world/9-11-inspired-many-young-americans-to-enlist-in-military/"},
+ {y:2011,name:"Steven Schmitz",role:"Son of a retired Marine · Stafford, Virginia",kind:"voice",
+  body:"He was a fourth-grader. The school went into lockdown and nobody told the students why, which he remembered mostly as confusing and frightening. He got home and saw the towers come down on television. Ten years later, almost to the week, he was processing through the Baltimore military entrance station.",
+  src:"American Forces Press Service, September 2011",url:"https://www.globalsecurity.org/security/library/news/2011/09/sec-110907-afps01.htm"},
+ {y:2019,name:"Marie Obannon",role:"U.S. Army · trainee private",kind:"voice",
+  body:"Her family's tradition, as she described it, was to sign up in wartime — World War II, then Vietnam. She placed her own enlistment as the next turn in that sequence rather than a break from it: <q>This tragedy became my turn.</q>",
+  src:"USO, 2019 interview",url:"https://www.uso.org/stories/2849-why-9-11-inspired-these-patriots-to-join-the-military"},
+ {y:2019,name:"Todd Crofoot",role:"Command Sergeant Major · Raleigh Recruiting Battalion",kind:"rec",
+  body:"He remembers the phone ringing after the attacks — people wanting to go find bin Laden personally, many of whom did not meet the Army's standards. Two decades on his challenge is the opposite. The teenagers walking into his office have no memory of that morning, have never known the country at peace, and arrive better informed and harder to move than any generation before them.",
+  src:"Military.com, 2019",url:"https://www.military.com/daily-news/2019/01/02/teens-born-after-9-11-reach-military-age-recruiters-face-new-challenges.html"},
+ {y:2021,name:"Col. James Welch",role:"Commander · U.S. Army 2nd Recruiting Brigade",kind:"rec",
+  body:"He describes the months after the attacks in one word: walk-ins. People simply came through the door. Twenty years later, with operations winding down and most recruits holding no memory of the day, recruiters report that the people signing up are moved far more by benefits and economic security than by anything that happened in 2001.",
+  src:"Military.com, September 2021",url:"https://www.military.com/daily-news/2021/09/10/9-11-terror-attacks-are-losing-recruiting-power-todays-troops.html"},
+ {y:2025,name:"The generation now enlisting",role:"Reported by Military.com",kind:"rec",
+  body:"For the men and women raising their right hand today, September 11 is not a memory but history. Most were not alive for it. What they grew up inside was its shadow — two decades of war, fathers and older siblings and cousins deploying repeatedly, some returning changed and some not returning. Those losses, not the footage, are what many of them name as their reason.",
+  src:"Military.com, September 2025",url:"https://www.military.com/youngest-recruits-dont-remember-9-11-they-still-serve-its-shadow.html"}
+];
+
+var approved=[];
+var live=[];
+var PATHS=[
+ {id:"after", t:"I served after that day",      s:"Enlisted or commissioned any time from September 2001 onward.", mode:"post"},
+ {id:"before",t:"I was already serving",        s:"In uniform on the morning of September 11, 2001.",              mode:"pre"},
+ {id:"family",t:"I'm a military family member", s:"A spouse, parent, child, or sibling of someone who served.",    mode:"post"},
+ {id:"adult", t:"I was an adult that day",      s:"Old enough to remember the morning as it happened.",            mode:"none"},
+ {id:"kid",   t:"I was a child that day",       s:"Alive in 2001, but young.",                                     mode:"none"},
+ {id:"unborn",t:"I wasn't born yet",            s:"September 11, 2001 has always been history to you.",            mode:"none"}
+];
+var WHY_AFTER=["That morning","Family tradition","School / GI Bill","Needed the work","Wanted out of my hometown","Someone I knew served","Someone I knew didn't come back","Still working that out"];
+var WHY_PRE=["Everything sped up","My first deployment","I stayed past when I'd planned to leave","My unit's mission changed","I got out","Nothing was routine again","I'd already deployed before","Still working that out"];
+
+var st={path:null,mode:null,year:null,pre:false,why:[],birth:null,sel:null,pick:false,vi:0,wi:0,submitted:false,localOnly:false};
+
+function $(i){return document.getElementById(i);}
+function esc(t){var d=document.createElement("div");d.textContent=t;return d.innerHTML;}
+function all(){return VOICES.concat(approved,live);}
+function ordered(){
+  var p=all().filter(function(v){return v.pre;}).sort(function(a,b){
+    if(a.y===null)return 1;if(b.y===null)return -1;return a.y-b.y;});
+  var q=all().filter(function(v){return !v.pre;}).sort(function(a,b){return a.y-b.y;});
+  return p.concat(q);
+}
+function inYear(y){return all().filter(function(v){return !v.pre&&v.y===y;});}
+function preList(){return ordered().filter(function(v){return v.pre;});}
+
+function loadApprovedStories(){
+  fetch("approved-stories.json",{cache:"no-store"}).then(function(r){
+    if(!r.ok)throw new Error("Approved story file unavailable");
+    return r.json();
+  }).then(function(items){
+    if(!Array.isArray(items))return;
+    approved=items.filter(function(v){
+      return v&&Number.isInteger(+v.y)&&+v.y>=1940&&+v.y<=END&&typeof v.body==="string";
+    }).map(function(v){
+      return {y:+v.y,pre:v.pre?1:0,name:String(v.name||"Community member"),
+        role:String(v.role||"Approved event submission"),kind:"community",plain:true,
+        body:String(v.body),src:String(v.src||"Approved event submission"),url:null};
+    });
+    refresh();
+  }).catch(function(){/* Empty or unavailable during local preview is fine. */});
+}
+
+function buildMobileYearPicker(){
+  var s=$("mobileYear");
+  for(var y=START;y<=END;y++){
+    var o=document.createElement("option");o.value=y;o.textContent=y;s.appendChild(o);
+  }
+  s.addEventListener("change",function(){
+    if(!this.value)return;
+    st.year=+this.value;mark(st.year);$("yearNext").disabled=false;ensureMarkerVisible(st.year);
+  });
+}
+
+function ensureMarkerVisible(y){
+  var el=document.querySelector('.ycol[data-year="'+y+'"]');
+  if(el&&window.matchMedia&&window.matchMedia("(max-width:700px)").matches){
+    el.scrollIntoView({behavior:"smooth",block:"nearest",inline:"center"});
+  }
+}
+
+var DAYS=Math.floor((new Date()-new Date(2001,8,11))/86400000);
+(function(){
+  var el=$("dayCount"),r=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(r){el.textContent=DAYS.toLocaleString("en-US");return;}
+  var t0=null;
+  function step(ts){if(!t0)t0=ts;var p=Math.min((ts-t0)/1400,1),e=1-Math.pow(1-p,3);
+    el.textContent=Math.floor(DAYS*e).toLocaleString("en-US");if(p<1)requestAnimationFrame(step);}
+  requestAnimationFrame(step);
+})();
+
+/* ---------- timeline ---------- */
+function buildTL(){
+  var box=$("years");
+  for(var y=START;y<=END;y++){
+    var b=document.createElement("button");
+    b.className="ycol";b.setAttribute("data-year",y);b.setAttribute("aria-pressed","false");
+    b.setAttribute("aria-label","Year "+y);
+    if(ANCHORS[y])b.setAttribute("data-ev","1");
+    b.innerHTML='<span class="dia"></span><span class="mk"><i></i></span>'+
+      '<span class="yr">'+y+'</span><span class="ct">0</span><span class="ctl">stories</span>';
+    b.addEventListener("click",onYear);
+    box.appendChild(b);
+  }
+  $("preBlock").addEventListener("click",function(){
+    if(st.pick)return;
+    st.sel="before";st.vi=0;mark("before");renderLine("before");
+    if(!$("s-line").classList.contains("on"))show("s-line");
+  });
+  refresh();
+}
+function onYear(){
+  var y=+this.getAttribute("data-year");
+  if(st.pick){st.year=y;mark(y);$("yearNext").disabled=false;ensureMarkerVisible(y);return;}
+  st.sel=y;st.vi=0;mark(y);renderLine(y);
+  if(!$("s-line").classList.contains("on"))show("s-line");
+}
+function mark(y){
+  var c=document.querySelectorAll(".ycol");
+  for(var i=0;i<c.length;i++)c[i].setAttribute("aria-pressed",(+c[i].getAttribute("data-year")===y)?"true":"false");
+  $("preBlock").setAttribute("aria-pressed",y==="before"?"true":"false");
+  if($("mobileYear"))$("mobileYear").value=(typeof y==="number"?String(y):"");
+}
+function refresh(){
+  var c=document.querySelectorAll(".ycol"),d=all();
+  for(var i=0;i<c.length;i++){
+    var y=+c[i].getAttribute("data-year");
+    var n=d.filter(function(v){return !v.pre&&v.y===y;}).length;
+    c[i].setAttribute("data-n",n>=3?"3":String(n));
+    c[i].querySelector(".ct").textContent=n;
+    c[i].querySelector(".ctl").textContent=n===1?"story":"stories";
+  }
+  var pd=$("preDots"),pl=preList();
+  pd.innerHTML="";
+  pl.forEach(function(v){
+    var i2=document.createElement("i");
+    var s=v.y===null?6:(v.mine?9:7);
+    i2.style.width=s+"px";i2.style.height=s+"px";
+    if(v.mine)i2.className="mine";
+    if(v.justAdded){i2.classList.add("dropped");v.justAdded=false;}
+    pd.appendChild(i2);
+  });
+  var summary=all().length+" published voices";
+  if(live.length)summary+=" · "+live.length+" pending on this device";
+  $("ribbonCount").textContent=summary;
+}
+
+function show(id){
+  var s=document.querySelectorAll(".screen");
+  for(var i=0;i<s.length;i++)s[i].classList.remove("on");
+  $(id).classList.add("on");
+  st.pick=(id==="s-year");
+  if(id==="s-line"&&st.sel===null)renderLine(null);
+  if(id==="s-year"&&st.year)ensureMarkerVisible(st.year);
+  window.scrollTo(0,0);
+}
+
+PATHS.forEach(function(p){
+  var b=document.createElement("button");
+  b.className="choice";
+  b.innerHTML=esc(p.t)+"<small>"+esc(p.s)+"</small>";
+  b.addEventListener("click",function(){
+    st.path=p.id;st.mode=p.mode;st.pre=(p.mode==="pre");
+    if(p.mode==="pre")show("s-yearpre");
+    else if(p.mode==="post"){
+      $("yearQ").textContent=p.id==="family"?"What year did your person raise their hand?":"What year did you raise your hand?";
+      show("s-year");mark(st.year);
+    }else show("s-birth");
+  });
+  $("pathList").appendChild(b);
+});
+
+function buildChips(list){
+  var box=$("whyChips");box.innerHTML="";st.why=[];
+  list.forEach(function(w){
+    var c=document.createElement("button");
+    c.className="chip";c.type="button";c.textContent=w;c.setAttribute("aria-pressed","false");
+    c.addEventListener("click",function(){
+      var on=c.getAttribute("aria-pressed")==="true";
+      c.setAttribute("aria-pressed",on?"false":"true");
+      if(on)st.why=st.why.filter(function(x){return x!==w;});else st.why.push(w);
+    });
+    box.appendChild(c);
+  });
+}
+
+$("yearNext").addEventListener("click",function(){
+  $("whyQ").textContent=st.path==="family"?"What made them raise their hand?":"What made you raise your hand?";
+  $("whySub").textContent="Pick as many as are true. There is no expected answer — the recorded ones range from grief to the GI Bill.";
+  buildChips(WHY_AFTER);show("s-why");
+});
+$("preYear").addEventListener("input",function(){var v=+this.value;$("preNext").disabled=!(v>=1940&&v<=2001);});
+$("preNext").addEventListener("click",function(){
+  st.year=+$("preYear").value;
+  $("whyQ").textContent="What changed for you after?";
+  $("whySub").textContent="You didn't decide anything that morning — it was decided around you. Pick as many as are true.";
+  buildChips(WHY_PRE);show("s-why");
+});
+$("oneLine").addEventListener("input",function(){$("cnt").textContent=this.value.length;});
+
+function addPendingMark(line,sig){
+  live.push({y:st.year,pre:st.pre?1:0,mine:true,justAdded:true,pending:true,plain:true,
+    name:sig||"Submitted at the memorial",role:st.why.join(" · ")||"No reason given",kind:"you",
+    body:line||"No written line was left — only the year.",src:"Submitted for staff review",url:null});
+  refresh();
+  if(!st.pre){
+    var t=document.querySelector('.ycol[data-year="'+st.year+'"]');
+    if(t)t.classList.add("mine","dropped");
+  }
+}
+
+function prepareForm(){
+  $("formPath").value=st.path||"";
+  $("formQuestion").value=st.pre?"What changed for you after?":"What made you raise your hand?";
+  $("formYear").value=st.year||"";
+  $("formReasons").value=st.why.join(" | ");
+  $("formSubmittedAt").value=new Date().toISOString();
+}
+
+function commit(e){
+  e.preventDefault();
+  var form=$("storyForm"),status=$("formStatus"),button=$("whyNext");
+  if(!form.reportValidity())return;
+  prepareForm();
+  var line=$("oneLine").value.trim(),sig=$("attrib").value.trim();
+  button.disabled=true;status.className="form-status";status.textContent="Submitting for staff review…";
+
+  if(location.protocol==="file:"){
+    addPendingMark(line,sig);st.localOnly=true;st.submitted=false;
+    status.className="form-status ok";status.textContent="Local preview: the mark was added only on this device. Netlify storage activates after deployment.";
+    setTimeout(function(){button.disabled=false;show("s-birth");},650);
+    return;
+  }
+
+  fetch("/",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},
+    body:new URLSearchParams(new FormData(form)).toString()})
+  .then(function(r){if(!r.ok)throw new Error("Submission failed");
+    addPendingMark(line,sig);st.submitted=true;st.localOnly=false;
+    status.className="form-status ok";status.textContent="Submitted. It will remain private until staff approves it.";
+    setTimeout(function(){button.disabled=false;show("s-birth");},650);
+  }).catch(function(){
+    button.disabled=false;status.className="form-status error";
+    status.textContent="This entry could not be saved. Check the connection and try again, or continue without submitting.";
+  });
+}
+$("storyForm").addEventListener("submit",commit);
+$("skipWhy").addEventListener("click",function(){st.submitted=false;st.localOnly=false;show("s-birth");});
+
+$("birth").addEventListener("input",function(){var v=+this.value;$("birthNext").disabled=!(v>=1915&&v<=2026);});
+$("birthNext").addEventListener("click",function(){st.birth=+$("birth").value;renderMirror();show("s-mirror");});
+$("skipBirth").addEventListener("click",function(){st.birth=null;renderMirror();show("s-mirror");});
+
+function matchFor(age){
+  function n(x){return VOICES.filter(function(v){return v.name===x;})[0];}
+  if(age===null)return null;
+  if(age<0)return n("The generation now enlisting");
+  if(age<=8)return n("Steven Schmitz");
+  if(age<=11)return n("Tim Freeman");
+  if(age<=15)return n("Matthew Locklair");
+  if(age<=23)return n("Josh Revak");
+  return n("Michelle Nicholson");
+}
+
+function renderMirror(){
+  var b=st.birth,out="",age=null;
+  if(st.pre){
+    out="<p>You were already there.</p><p>Everyone else on this line decided something that morning or after it. You didn't get to. It was decided around you, and then it kept being decided for the next twenty years.</p>";
+    if(b&&b<2001)age=2001-b;
+  }else if(b===null){
+    out="<p>You kept that one to yourself.</p><p>The line below holds everyone else — five decades of service, and twenty-five years of consequence.</p>";
+  }else if(b>2001){
+    var gap=b-2001,af=Math.floor((new Date()-new Date(b,0,1))/86400000);age=-1;
+    out="<p>You were born <span class='hl2'>"+gap+" year"+(gap===1?"":"s")+" after</span> that morning.</p>"+
+        "<p>Of the "+DAYS.toLocaleString("en-US")+" days since, you were not alive for the first "+
+        (DAYS-af).toLocaleString("en-US")+". It has never been a memory for you. It has always been history — the way Pearl Harbor was history to the people who went to Vietnam.</p>"+
+        "<p>People your age are enlisting right now, into a military that morning built.</p>";
+  }else if(b===2001){
+    age=0;
+    out="<p>You were born the same year.</p><p>A few weeks old that morning, or not quite here yet. Either way you have no memory of it — and you have never lived a single day in the country that existed before it.</p>";
+  }else{
+    age=2001-b;
+    if(age<6)out="<p>You were <span class='bz'>"+age+"</span> on September 11, 2001.</p><p>Old enough to be alive for it. Too young to keep it. Most people your age remember the adults more clearly than the day.</p>";
+    else if(age<18)out="<p>You were <span class='bz'>"+age+"</span> on September 11, 2001.</p><p>Old enough to remember exactly where you were sitting. Too young to do anything about it for years — which is its own particular weight.</p><p>People who were "+age+" that day began enlisting around "+(b+18)+". There are voices on the line from those years.</p>";
+    else out="<p>You were <span class='bz'>"+age+"</span> on September 11, 2001.</p><p>You are one of the people this exhibit exists to hear from. Most of the room was either not born yet, or does not remember.</p>";
+  }
+  $("mirrorText").innerHTML=out;
+
+  var ps=$("placedSlot");ps.innerHTML="";
+  if(st.year&&(st.submitted||st.localOnly)){
+    var d=document.createElement("div");d.className="placed";
+    var state=st.submitted?"Your entry was stored privately for staff review.":"This is a local preview mark and was not stored.";
+    d.innerHTML=state+" It appears on <b>"+st.year+"</b> on this device, but it will not appear for other visitors unless staff approves and publishes it.";
+    ps.appendChild(d);
+  }
+
+  var slot=$("mirrorMatch");slot.innerHTML="";
+  if(st.pre){
+    var l0=document.createElement("p");l0.className="lede";l0.style.marginTop="32px";
+    l0.textContent="Here is someone else who was already in uniform.";
+    slot.appendChild(l0);
+    var pool=preList().filter(function(v){return !v.mine;});
+    slot.appendChild(voiceEl(pool[Math.floor(Math.random()*pool.length)]));
+  }else{
+    var m=matchFor(age);
+    if(m){
+      var l=document.createElement("p");l.className="lede";l.style.marginTop="32px";
+      l.textContent=age===-1?"Here is who is enlisting alongside you now.":"Here is someone who was about your age that morning, and what they did next.";
+      slot.appendChild(l);slot.appendChild(voiceEl(m));
+    }
+  }
+}
+
+function voiceEl(v){
+  if(!v)return document.createElement("div");
+  var d=document.createElement("div");d.className="voice";
+  var badge=v.kind==="pre"?'<span class="kind pre">Already serving</span>'
+          :v.kind==="seam"?'<span class="kind seam">The day before</span>'
+          :v.kind==="rec"?'<span class="kind rec">From the recruiting side</span>'
+          :v.kind==="community"?'<span class="kind community">Community voice</span>'
+          :v.kind==="you"?'<span class="kind you">Pending review</span>':'';
+  var src=v.url?'<a href="'+v.url+'" target="_blank" rel="noopener">'+esc(v.src)+' \u2197</a>':'<span>'+esc(v.src)+'</span>';
+  var yr=v.y===null?'<div class="voice-year pre">already in</div>'
+       :v.pre?'<div class="voice-year pre">came in '+v.y+'</div>'
+       :'<div class="voice-year">'+v.y+'</div>';
+  var body=v.plain?esc(v.body):v.body;
+  d.innerHTML=yr+'<div class="voice-name">'+esc(v.name)+'</div><div class="voice-rule"></div>'+
+    '<div class="voice-role">'+esc(v.role)+'</div>'+
+    '<div class="voice-body">'+body+'</div>'+
+    '<div class="voice-src">'+badge+src+'</div>';
+  return d;
+}
+
+function renderLine(y){
+  var a=$("anchorSlot"),vs=$("voiceSlot");a.innerHTML="";vs.innerHTML="";
+  if(y===null){
+    $("lineHead").textContent="Choose a year";
+    $("lineSub").textContent="The dashed block on the left holds everyone who was already serving. Bronze diamonds mark events. Blue circles are people.";
+    vs.innerHTML='<div class="empty">Five decades of service, twenty-five years of consequence. Start anywhere.</div>';
+    return;
+  }
+  var list;
+  if(y==="before"){
+    $("lineHead").textContent="Already serving";list=preList();
+    $("lineSub").textContent="The people who didn't choose. They were in uniform when it happened, and everything after was decided around them.";
+  }else{
+    $("lineHead").textContent=y;list=inYear(y);
+    $("lineSub").textContent=list.length?list.length+" "+(list.length===1?"voice":"voices")+" from this year.":"No voices recorded for this year yet.";
+    (ANCHORS[y]||[]).forEach(function(x){
+      var d=document.createElement("div");d.className="anchor";
+      d.innerHTML='<div class="k">'+esc(x.k)+'</div><div class="v">'+esc(x.v)+'</div>';
+      a.appendChild(d);
+    });
+  }
+  if(!list.length){
+    vs.innerHTML='<div class="empty">Nobody has spoken for '+y+' yet. At the event, this is where a visitor from this year would appear.</div>';
+    return;
+  }
+  if(st.vi>=list.length)st.vi=0;
+  vs.appendChild(voiceEl(list[st.vi]));
+  if(list.length>1){
+    var nav=document.createElement("div");nav.className="nav-voices";
+    nav.innerHTML='<button id="pv" aria-label="Previous">\u2190</button><span class="nav-count">'+
+      (st.vi+1)+' of '+list.length+(y==="before"?" already serving":" from "+y)+
+      '</span><button id="nx" aria-label="Next">\u2192</button>';
+    vs.appendChild(nav);
+    $("pv").disabled=st.vi===0;$("nx").disabled=st.vi===list.length-1;
+    $("pv").addEventListener("click",function(){st.vi--;renderLine(y);});
+    $("nx").addEventListener("click",function(){st.vi++;renderLine(y);});
+  }
+}
+
+function renderWalk(){
+  var l=ordered(),s=$("walkSlot");s.innerHTML="";
+  if(st.wi<0)st.wi=0;if(st.wi>=l.length)st.wi=l.length-1;
+  var v=l[st.wi];s.appendChild(voiceEl(v));
+  mark(v.pre?"before":v.y);
+  var nav=document.createElement("div");nav.className="nav-voices";
+  nav.innerHTML='<button id="wpv" aria-label="Previous">\u2190</button><span class="nav-count">'+
+    (st.wi+1)+' of '+l.length+' voices</span><button id="wnx" aria-label="Next">\u2192</button>';
+  s.appendChild(nav);
+  $("wpv").disabled=st.wi===0;$("wnx").disabled=st.wi===l.length-1;
+  $("wpv").addEventListener("click",function(){st.wi--;renderWalk();});
+  $("wnx").addEventListener("click",function(){st.wi++;renderWalk();});
+}
+function startWalk(){st.wi=0;renderWalk();show("s-walk");}
+$("walkBtn").addEventListener("click",startWalk);
+$("walkBtn2").addEventListener("click",startWalk);
+
+var g=document.querySelectorAll("[data-go]");
+for(var i=0;i<g.length;i++){
+  g[i].addEventListener("click",function(){
+    var t=this.getAttribute("data-go");
+    if(t==="s-open"){
+      st={path:null,mode:null,year:null,pre:false,why:[],birth:null,sel:null,pick:false,vi:0,wi:0,submitted:false,localOnly:false};
+      $("oneLine").value="";$("attrib").value="";$("birth").value="";$("preYear").value="";$("mobileYear").value="";
+      $("permission").checked=false;$("formStatus").textContent="";$("formStatus").className="form-status";
+      $("cnt").textContent="0";$("yearNext").disabled=true;$("birthNext").disabled=true;$("preNext").disabled=true;
+      mark(null);
+    }
+    show(t);
+  });
+}
+$("notesBtn").addEventListener("click",function(){$("panel").classList.add("on");});
+$("helpBtn").addEventListener("click",function(){$("panel").classList.add("on");});
+$("closeX").addEventListener("click",function(){$("panel").classList.remove("on");});
+$("panel").addEventListener("click",function(e){if(e.target===this)this.classList.remove("on");});
+document.addEventListener("keydown",function(e){if(e.key==="Escape")$("panel").classList.remove("on");});
+
+buildMobileYearPicker();
+buildTL();
+loadApprovedStories();
+})();
+</script>
+</body>
+</html>
