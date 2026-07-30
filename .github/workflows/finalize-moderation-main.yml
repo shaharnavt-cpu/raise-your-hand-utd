@@ -1,0 +1,71 @@
+name: Finalize moderation build on main
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/finalize-moderation-main.yml
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install dashboard and connect public feed
+        shell: bash
+        run: |
+          cp admin/moderation-dashboard.html admin/index.html
+          rm admin/moderation-dashboard.html
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('index.html')
+          text = path.read_text(encoding='utf-8')
+          old = 'fetch("approved-stories.json",{cache:"no-store"})'
+          new = 'fetch("/.netlify/functions/public-stories",{cache:"no-store"})'
+          if new not in text:
+              if old not in text:
+                  raise SystemExit('Could not find approved story fetch call')
+              text = text.replace(old, new, 1)
+              path.write_text(text, encoding='utf-8')
+          PY
+          cat > netlify.toml <<'TOML'
+          [build]
+            publish = "."
+            functions = "netlify/functions"
+
+          [functions]
+            node_bundler = "esbuild"
+
+          [[headers]]
+            for = "/*"
+            [headers.values]
+              X-Content-Type-Options = "nosniff"
+              X-Frame-Options = "DENY"
+              Referrer-Policy = "strict-origin-when-cross-origin"
+              Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+          [[headers]]
+            for = "/approved-stories.json"
+            [headers.values]
+              Cache-Control = "no-store, max-age=0"
+
+          [[headers]]
+            for = "/.netlify/functions/*"
+            [headers.values]
+              Cache-Control = "no-store, max-age=0"
+          TOML
+      - name: Commit finalized build
+        shell: bash
+        run: |
+          rm -f .github/workflows/finalize-moderation-main.yml
+          rm -f .github/workflows/finalize-moderation-build.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Complete moderated publishing workflow"
+          git push
