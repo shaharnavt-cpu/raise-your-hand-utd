@@ -330,6 +330,20 @@ textarea{resize:vertical;min-height:78px;line-height:1.55;font-family:var(--seri
     <div class="choices" id="pathList"></div>
   </section>
 
+  <section class="screen" id="s-family-era">
+    <span class="tag">A quick distinction</span>
+    <h2>Was your person already serving on September 11, 2001?</h2>
+    <p class="lede">This decides which side of the line their story belongs on. People already in uniform are asked what changed afterward; people who entered later are asked what made them raise their hand.</p>
+    <div class="choices">
+      <button class="choice" id="familyBefore" type="button">Yes — they were already serving<small>They entered service before September 11, 2001.</small></button>
+      <button class="choice" id="familyAfter" type="button">No — they entered after that day<small>They enlisted or commissioned from September 2001 onward.</small></button>
+      <button class="choice" id="familySkip" type="button">My connection does not fit either option<small>Continue to the birth-year mirror without placing a service-year mark.</small></button>
+    </div>
+    <div class="row">
+      <button class="btn quiet" data-go="s-path">Back</button>
+    </div>
+  </section>
+
   <section class="screen" id="s-year">
     <span class="tag">Two of three</span>
     <h2 id="yearQ">What year did you raise your hand?</h2>
@@ -349,8 +363,8 @@ textarea{resize:vertical;min-height:78px;line-height:1.55;font-family:var(--seri
 
   <section class="screen" id="s-yearpre">
     <span class="tag">Two of three</span>
-    <h2>What year did you enter service?</h2>
-    <p class="lede">Any year. The line runs back well before 2001 — the earliest voice on it entered the Army in 1976.</p>
+    <h2 id="preYearQ">What year did you enter service?</h2>
+    <p class="lede" id="preYearSub">Any year. The line runs back well before 2001 — the earliest voice on it entered the Army in 1976.</p>
     <div class="field" style="max-width:186px">
       <label class="fl" for="preYear">Year you came in</label>
       <input type="number" id="preYear" min="1940" max="2001" placeholder="1986" inputmode="numeric">
@@ -591,7 +605,7 @@ var live=[];
 var PATHS=[
  {id:"after", t:"I served after that day",      s:"Enlisted or commissioned any time from September 2001 onward.", mode:"post"},
  {id:"before",t:"I was already serving",        s:"In uniform on the morning of September 11, 2001.",              mode:"pre"},
- {id:"family",t:"I'm a military family member", s:"A spouse, parent, child, or sibling of someone who served.",    mode:"post"},
+ {id:"family",t:"I'm military affiliated",      s:"A spouse, parent, child, sibling, caregiver, or other close connection to someone who served.", mode:"family"},
  {id:"adult", t:"I was an adult that day",      s:"Old enough to remember the morning as it happened.",            mode:"none"},
  {id:"kid",   t:"I was a child that day",       s:"Alive in 2001, but young.",                                     mode:"none"},
  {id:"unborn",t:"I wasn't born yet",            s:"September 11, 2001 has always been history to you.",            mode:"none"}
@@ -730,13 +744,33 @@ PATHS.forEach(function(p){
   b.innerHTML=esc(p.t)+"<small>"+esc(p.s)+"</small>";
   b.addEventListener("click",function(){
     st.path=p.id;st.mode=p.mode;st.pre=(p.mode==="pre");
-    if(p.mode==="pre")show("s-yearpre");
-    else if(p.mode==="post"){
-      $("yearQ").textContent=p.id==="family"?"What year did your person raise their hand?":"What year did you raise your hand?";
+    if(p.mode==="pre"){
+      $("preYearQ").textContent="What year did you enter service?";
+      $("preYearSub").textContent="Any year. The line runs back well before 2001 — the earliest voice on it entered the Army in 1976.";
+      show("s-yearpre");
+    }else if(p.mode==="family"){
+      st.year=null;st.pre=false;mark(null);show("s-family-era");
+    }else if(p.mode==="post"){
+      $("yearQ").textContent="What year did you raise your hand?";
       show("s-year");mark(st.year);
     }else show("s-birth");
   });
   $("pathList").appendChild(b);
+});
+
+$("familyBefore").addEventListener("click",function(){
+  st.mode="pre";st.pre=true;st.year=null;
+  $("preYearQ").textContent="What year did they enter service?";
+  $("preYearSub").textContent="Any year up to 2001. Their mark will appear in the separate ‘already serving’ block at the start of the timeline.";
+  $("preYear").value="";$("preNext").disabled=true;show("s-yearpre");
+});
+$("familyAfter").addEventListener("click",function(){
+  st.mode="post";st.pre=false;st.year=null;
+  $("yearQ").textContent="What year did your person raise their hand?";
+  $("yearNext").disabled=true;mark(null);show("s-year");
+});
+$("familySkip").addEventListener("click",function(){
+  st.mode="none";st.pre=false;st.year=null;mark(null);show("s-birth");
 });
 
 function buildChips(list){
@@ -761,8 +795,13 @@ $("yearNext").addEventListener("click",function(){
 $("preYear").addEventListener("input",function(){var v=+this.value;$("preNext").disabled=!(v>=1940&&v<=2001);});
 $("preNext").addEventListener("click",function(){
   st.year=+$("preYear").value;
-  $("whyQ").textContent="What changed for you after?";
-  $("whySub").textContent="You didn't decide anything that morning — it was decided around you. Pick as many as are true.";
+  if(st.path==="family"){
+    $("whyQ").textContent="What changed for them after?";
+    $("whySub").textContent="They were already serving that morning, so the question is not why they joined. Pick as many changes as are true.";
+  }else{
+    $("whyQ").textContent="What changed for you after?";
+    $("whySub").textContent="You didn't decide anything that morning — it was decided around you. Pick as many as are true.";
+  }
   buildChips(WHY_PRE);show("s-why");
 });
 $("oneLine").addEventListener("input",function(){$("cnt").textContent=this.value.length;});
@@ -780,7 +819,9 @@ function addPendingMark(line,sig){
 
 function prepareForm(){
   $("formPath").value=st.path||"";
-  $("formQuestion").value=st.pre?"What changed for you after?":"What made you raise your hand?";
+  $("formQuestion").value=st.pre
+    ?(st.path==="family"?"What changed for them after?":"What changed for you after?")
+    :(st.path==="family"?"What made them raise their hand?":"What made you raise your hand?");
   $("formYear").value=st.year||"";
   $("formReasons").value=st.why.join(" | ");
   $("formSubmittedAt").value=new Date().toISOString();
@@ -833,7 +874,10 @@ function matchFor(age){
 function renderMirror(){
   var b=st.birth,out="",age=null;
   if(st.pre){
-    out="<p>You were already there.</p><p>Everyone else on this line decided something that morning or after it. You didn't get to. It was decided around you, and then it kept being decided for the next twenty years.</p>";
+    if(st.path==="family")
+      out="<p>Your person was already there.</p><p>They did not make a new decision to serve that morning. The mission changed around them, and the consequences continued for the next twenty years.</p>";
+    else
+      out="<p>You were already there.</p><p>Everyone else on this line decided something that morning or after it. You didn't get to. It was decided around you, and then it kept being decided for the next twenty years.</p>";
     if(b&&b<2001)age=2001-b;
   }else if(b===null){
     out="<p>You kept that one to yourself.</p><p>The line below holds everyone else — five decades of service, and twenty-five years of consequence.</p>";
@@ -865,7 +909,7 @@ function renderMirror(){
   var slot=$("mirrorMatch");slot.innerHTML="";
   if(st.pre){
     var l0=document.createElement("p");l0.className="lede";l0.style.marginTop="32px";
-    l0.textContent="Here is someone else who was already in uniform.";
+    l0.textContent=st.path==="family"?"Here is another person who was already in uniform.":"Here is someone else who was already in uniform.";
     slot.appendChild(l0);
     var pool=preList().filter(function(v){return !v.mine;});
     slot.appendChild(voiceEl(pool[Math.floor(Math.random()*pool.length)]));
@@ -963,6 +1007,8 @@ for(var i=0;i<g.length;i++){
       st={path:null,mode:null,year:null,pre:false,why:[],birth:null,sel:null,pick:false,vi:0,wi:0,submitted:false,localOnly:false};
       $("oneLine").value="";$("attrib").value="";$("birth").value="";$("preYear").value="";$("mobileYear").value="";
       $("permission").checked=false;$("formStatus").textContent="";$("formStatus").className="form-status";
+      $("preYearQ").textContent="What year did you enter service?";
+      $("preYearSub").textContent="Any year. The line runs back well before 2001 — the earliest voice on it entered the Army in 1976.";
       $("cnt").textContent="0";$("yearNext").disabled=true;$("birthNext").disabled=true;$("preNext").disabled=true;
       mark(null);
     }
