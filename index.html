@@ -299,6 +299,14 @@ textarea{resize:vertical;min-height:78px;line-height:1.55;font-family:var(--seri
 </style>
 </head>
 <body>
+<script>
+(function(){
+  var h=window.location.hash||"";
+  if(/^#(?:invite|confirmation|recovery|email_change)_token=/.test(h)){
+    window.location.replace("/login/"+h);
+  }
+})();
+</script>
 <div id="sky"></div>
 
 <header>
