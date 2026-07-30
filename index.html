@@ -333,11 +333,11 @@ textarea{resize:vertical;min-height:78px;line-height:1.55;font-family:var(--seri
   <section class="screen" id="s-family-era">
     <span class="tag">A quick distinction</span>
     <h2>Was your person already serving on September 11, 2001?</h2>
-    <p class="lede">This decides which side of the line their story belongs on. People already in uniform are asked what changed afterward; people who entered later are asked what made them raise their hand.</p>
+    <p class="lede">A couple of quick questions will help us ask about their experience accurately.</p>
     <div class="choices">
-      <button class="choice" id="familyBefore" type="button">Yes — they were already serving<small>They entered service before September 11, 2001.</small></button>
-      <button class="choice" id="familyAfter" type="button">No — they entered after that day<small>They enlisted or commissioned from September 2001 onward.</small></button>
-      <button class="choice" id="familySkip" type="button">My connection does not fit either option<small>Continue to the birth-year mirror without placing a service-year mark.</small></button>
+      <button class="choice" id="familyBefore" type="button">Yes — they were already serving<small>They entered service before that morning.</small></button>
+      <button class="choice" id="familyAfter" type="button">No — they entered after that day<small>They enlisted or commissioned on or after September 11, 2001.</small></button>
+      <button class="choice" id="familySkip" type="button">My connection does not fit either option<small>Continue without answering about a service year.</small></button>
     </div>
     <div class="row">
       <button class="btn quiet" data-go="s-path">Back</button>
@@ -612,6 +612,8 @@ var PATHS=[
 ];
 var WHY_AFTER=["That morning","Family tradition","School / GI Bill","Needed the work","Wanted out of my hometown","Someone I knew served","Someone I knew didn't come back","Still working that out"];
 var WHY_PRE=["Everything sped up","My first deployment","I stayed past when I'd planned to leave","My unit's mission changed","I got out","Nothing was routine again","I'd already deployed before","Still working that out"];
+var WHY_AFTER_FAMILY=["That morning","Family tradition","School / GI Bill","They needed the work","They wanted out of their hometown","Someone they knew served","Someone they knew didn't come back","The reasons are still hard to name"];
+var WHY_PRE_FAMILY=["Everything sped up","They deployed for the first time","They stayed past when they had planned to leave","Their unit's mission changed","They left the service","Nothing was routine again","They had already deployed before","The change is still hard to name"];
 
 var st={path:null,mode:null,year:null,pre:false,why:[],birth:null,sel:null,pick:false,vi:0,wi:0,submitted:false,localOnly:false};
 
@@ -761,12 +763,14 @@ PATHS.forEach(function(p){
 $("familyBefore").addEventListener("click",function(){
   st.mode="pre";st.pre=true;st.year=null;
   $("preYearQ").textContent="What year did they enter service?";
-  $("preYearSub").textContent="Any year up to 2001. Their mark will appear in the separate ‘already serving’ block at the start of the timeline.";
+  $("preYearSub").textContent="Enter any year up to 2001.";
+  $("oneLine").placeholder="Something you remember about what changed for them.";
   $("preYear").value="";$("preNext").disabled=true;show("s-yearpre");
 });
 $("familyAfter").addEventListener("click",function(){
   st.mode="post";st.pre=false;st.year=null;
   $("yearQ").textContent="What year did your person raise their hand?";
+  $("oneLine").placeholder="Something you remember about why they joined.";
   $("yearNext").disabled=true;mark(null);show("s-year");
 });
 $("familySkip").addEventListener("click",function(){
@@ -789,20 +793,27 @@ function buildChips(list){
 
 $("yearNext").addEventListener("click",function(){
   $("whyQ").textContent=st.path==="family"?"What made them raise their hand?":"What made you raise your hand?";
-  $("whySub").textContent="Pick as many as are true. There is no expected answer — the recorded ones range from grief to the GI Bill.";
-  buildChips(WHY_AFTER);show("s-why");
+  $("whySub").textContent=st.path==="family"
+    ?"Pick as many as fit their story. There is no expected answer."
+    :"Pick as many as are true. There is no expected answer — the recorded ones range from grief to the GI Bill.";
+  $("oneLine").placeholder=st.path==="family"
+    ?"Something you remember about why they joined."
+    :"Something you remember about deciding.";
+  buildChips(st.path==="family"?WHY_AFTER_FAMILY:WHY_AFTER);show("s-why");
 });
 $("preYear").addEventListener("input",function(){var v=+this.value;$("preNext").disabled=!(v>=1940&&v<=2001);});
 $("preNext").addEventListener("click",function(){
   st.year=+$("preYear").value;
   if(st.path==="family"){
-    $("whyQ").textContent="What changed for them after?";
-    $("whySub").textContent="They were already serving that morning, so the question is not why they joined. Pick as many changes as are true.";
+    $("whyQ").textContent="What changed for them after September 11?";
+    $("whySub").textContent="Pick as many as fit their experience.";
+    $("oneLine").placeholder="Something you remember about what changed for them.";
   }else{
     $("whyQ").textContent="What changed for you after?";
     $("whySub").textContent="You didn't decide anything that morning — it was decided around you. Pick as many as are true.";
+    $("oneLine").placeholder="Something you remember about what changed.";
   }
-  buildChips(WHY_PRE);show("s-why");
+  buildChips(st.path==="family"?WHY_PRE_FAMILY:WHY_PRE);show("s-why");
 });
 $("oneLine").addEventListener("input",function(){$("cnt").textContent=this.value.length;});
 
@@ -1005,7 +1016,7 @@ for(var i=0;i<g.length;i++){
     var t=this.getAttribute("data-go");
     if(t==="s-open"){
       st={path:null,mode:null,year:null,pre:false,why:[],birth:null,sel:null,pick:false,vi:0,wi:0,submitted:false,localOnly:false};
-      $("oneLine").value="";$("attrib").value="";$("birth").value="";$("preYear").value="";$("mobileYear").value="";
+      $("oneLine").value="";$("oneLine").placeholder="Something you remember.";$("attrib").value="";$("birth").value="";$("preYear").value="";$("mobileYear").value="";
       $("permission").checked=false;$("formStatus").textContent="";$("formStatus").className="form-status";
       $("preYearQ").textContent="What year did you enter service?";
       $("preYearSub").textContent="Any year. The line runs back well before 2001 — the earliest voice on it entered the Army in 1976.";
