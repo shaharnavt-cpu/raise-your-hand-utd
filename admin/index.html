@@ -6,40 +6,60 @@
   <title>Staff Review — Raise Your Hand</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;500&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;500&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
   <style>
-    :root{--stone:#e9e5dc;--ink:#282c33;--ink2:#4e545e;--line:#c8c1b4;--petrol:#1d486b;--bronze:#8a6a3c}
-    *{box-sizing:border-box}html,body{min-height:100%;margin:0}body{background:var(--stone);color:var(--ink);font-family:"Public Sans",sans-serif;padding:24px}
-    main{max-width:960px;margin:0 auto}.top{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;border-bottom:1px solid var(--line);padding-bottom:20px}
-    .tag{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--bronze);font-weight:600}h1{font-family:"Spectral",serif;font-size:clamp(34px,6vw,52px);font-weight:400;margin:10px 0 0}
-    p{color:var(--ink2);line-height:1.65}.card{margin-top:28px;border:1px solid var(--line);background:rgba(255,255,255,.38);padding:24px}
-    button{border:0;background:var(--petrol);color:white;padding:12px 20px;font:600 12px "Public Sans",sans-serif;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
-    button.ghost{background:transparent;color:var(--ink2);border:1px solid var(--line)}#staffEmail{font-size:13px;color:var(--ink2);margin-top:8px}
+    :root{--stone:#e9e5dc;--paper:#f4f1ea;--ink:#282c33;--ink2:#4e545e;--ink3:#777c84;--line:#c8c1b4;--petrol:#1d486b;--petrol2:#2f6c9c;--bronze:#8a6a3c;--red:#8a3c3c;--green:#315f49}
+    *{box-sizing:border-box}html,body{min-height:100%;margin:0}body{background:var(--stone);color:var(--ink);font-family:"Public Sans",sans-serif;padding:clamp(16px,3vw,32px)}
+    button,input,textarea{font:inherit}button{cursor:pointer}.wrap{max-width:1120px;margin:0 auto}.top{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;border-bottom:1px solid var(--line);padding-bottom:20px}
+    .tag{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--bronze);font-weight:700}h1{font-family:"Spectral",serif;font-size:clamp(36px,7vw,58px);font-weight:400;line-height:1;margin:10px 0 0}
+    #staffEmail{font-size:13px;color:var(--ink2);margin-top:10px}.top-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.btn{border:0;background:var(--petrol);color:#fff;padding:12px 18px;font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
+    .btn:hover{background:var(--petrol2)}.btn:disabled{opacity:.45;cursor:not-allowed}.btn.ghost{background:transparent;color:var(--ink2);border:1px solid var(--line)}.btn.danger{background:var(--red)}.btn.good{background:var(--green)}
+    .summary{display:flex;gap:12px;flex-wrap:wrap;margin:22px 0}.stat{border:1px solid var(--line);background:rgba(255,255,255,.32);padding:12px 16px;min-width:120px}.stat b{font-size:24px;font-family:"Spectral",serif;font-weight:500;display:block}.stat span{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink2)}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:12px}.tab{border:1px solid var(--line);background:transparent;color:var(--ink2);padding:10px 15px;font-weight:600}.tab[aria-selected="true"]{background:var(--petrol);border-color:var(--petrol);color:#fff}
+    .status{min-height:24px;margin:14px 0;color:var(--ink2);font-size:14px}.status.error{color:var(--red)}.list{display:grid;gap:18px}.empty{border:1px dashed var(--line);padding:28px;color:var(--ink2);background:rgba(255,255,255,.2)}
+    .card{border:1px solid var(--line);background:rgba(255,255,255,.4);padding:clamp(18px,3vw,28px)}.card-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.badge{display:inline-block;border:1px solid var(--line);padding:4px 8px;font-size:9px;letter-spacing:.12em;text-transform:uppercase;font-weight:700}.badge.approved{color:var(--green);border-color:var(--green)}.badge.rejected{color:var(--red);border-color:var(--red)}.badge.unpublished{color:var(--bronze);border-color:var(--bronze)}
+    .meta{font-size:12px;color:var(--ink2);line-height:1.6}.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;margin-top:20px}.field label{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--ink2);margin-bottom:7px}
+    .field input,.field textarea{width:100%;border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:11px 12px;border-radius:0}.field textarea{min-height:118px;resize:vertical;line-height:1.5}.field.full{grid-column:1/-1}.check{display:flex;gap:10px;align-items:center;margin-top:4px;color:var(--ink2);font-size:13px}.check input{width:18px;height:18px}
+    details{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}summary{cursor:pointer;color:var(--ink2);font-weight:600}.original{margin-top:12px;color:var(--ink2);line-height:1.6;white-space:pre-wrap}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:20px}.note{font-size:12px;color:var(--ink3);margin-top:12px}
+    @media(max-width:720px){.top{display:block}.top-actions{justify-content:flex-start;margin-top:18px}.grid{grid-template-columns:1fr}.field.full{grid-column:auto}.card-head{display:block}.badge{margin-bottom:9px}.btn{min-height:44px}}
   </style>
 </head>
 <body>
-<main>
-  <div class="top">
+<div class="wrap">
+  <header class="top">
     <div><span class="tag">Raise Your Hand</span><h1>Staff review</h1><div id="staffEmail"></div></div>
-    <button class="ghost" id="logoutButton" type="button">Sign out</button>
-  </div>
-  <div class="card">
-    <h2>Login is connected</h2>
-    <p>The moderation queue is the next part of this build. Once connected, this page will show Pending, Approved, and Rejected submissions with edit, approve, reject, and unpublish controls.</p>
-  </div>
-</main>
+    <div class="top-actions"><a class="btn ghost" href="/" style="text-decoration:none">View exhibit</a><button class="btn ghost" id="refreshButton" type="button">Refresh</button><button class="btn ghost" id="logoutButton" type="button">Sign out</button></div>
+  </header>
+  <section class="summary" aria-label="Submission totals">
+    <div class="stat"><b id="pendingCount">0</b><span>Pending</span></div><div class="stat"><b id="approvedCount">0</b><span>Approved</span></div><div class="stat"><b id="rejectedCount">0</b><span>Rejected</span></div>
+  </section>
+  <nav class="tabs" aria-label="Moderation filters"><button class="tab" data-tab="pending" aria-selected="true">Pending</button><button class="tab" data-tab="approved" aria-selected="false">Approved</button><button class="tab" data-tab="rejected" aria-selected="false">Rejected</button></nav>
+  <div class="status" id="status" role="status" aria-live="polite"></div><main class="list" id="submissionList"></main>
+</div>
 <script>
 (function(){
-  var identity=window.netlifyIdentity;
-  if(!identity){window.location.replace('/login/');return;}
-  identity.on('init',function(user){
-    if(!user){window.location.replace('/login/');return;}
-    document.getElementById('staffEmail').textContent=user.email||'Signed in';
-  });
-  identity.on('logout',function(){window.location.replace('/login/');});
-  document.getElementById('logoutButton').addEventListener('click',function(){identity.logout();});
-  identity.init();
+  "use strict";
+  var identity=window.netlifyIdentity,user=null,submissions=[],activeTab="pending",loading=false;
+  var status=document.getElementById("status"),list=document.getElementById("submissionList");
+  function setStatus(message,isError){status.textContent=message||"";status.className="status"+(isError?" error":"");}
+  function text(tag,value,className){var el=document.createElement(tag);if(className)el.className=className;el.textContent=value;return el;}
+  function formatDate(value){var d=new Date(value);return Number.isNaN(d.getTime())?"Unknown time":d.toLocaleString();}
+  function tabMatches(item){return activeTab==="pending"?(item.status==="pending"||item.status==="unpublished"):item.status===activeTab;}
+  async function authFetch(url,options){if(!user)throw new Error("You are not signed in.");var token=await user.jwt();var opts=options||{};opts.headers=Object.assign({},opts.headers||{},{Authorization:"Bearer "+token});return fetch(url,opts);}
+  function counts(){document.getElementById("pendingCount").textContent=submissions.filter(function(x){return x.status==="pending"||x.status==="unpublished";}).length;document.getElementById("approvedCount").textContent=submissions.filter(function(x){return x.status==="approved";}).length;document.getElementById("rejectedCount").textContent=submissions.filter(function(x){return x.status==="rejected";}).length;}
+  function field(labelText,type,value,max){var wrap=document.createElement("div");wrap.className="field";var label=text("label",labelText);var input=document.createElement(type==="textarea"?"textarea":"input");if(type!=="textarea")input.type=type;input.value=value==null?"":value;if(max)input.maxLength=max;wrap.appendChild(label);wrap.appendChild(input);return {wrap:wrap,input:input};}
+  function renderCard(item){
+    var card=document.createElement("article");card.className="card";card.dataset.key=item.key;var head=document.createElement("div");head.className="card-head";var left=document.createElement("div");var badge=text("span",item.status,item.status+" badge");left.appendChild(badge);left.appendChild(text("div",formatDate(item.submittedAt),"meta"));var right=text("div",(item.path||"unspecified")+(item.questionType?" · "+item.questionType:""),"meta");head.appendChild(left);head.appendChild(right);card.appendChild(head);
+    var version=item.publicVersion||{},grid=document.createElement("div");grid.className="grid";var name=field("Public attribution","text",version.attribution||"",44);var year=field("Service year","number",version.serviceYear||item.serviceYear||"");year.input.min="1940";year.input.max="2026";var story=field("Public story","textarea",version.story||"",150);story.wrap.classList.add("full");var reasons=field("Public context / reasons","text",Array.isArray(version.reasons)?version.reasons.join(" | "):"",500);reasons.wrap.classList.add("full");var preWrap=document.createElement("div");preWrap.className="field full";var checkLabel=document.createElement("label");checkLabel.className="check";var pre=document.createElement("input");pre.type="checkbox";pre.checked=Boolean(version.pre);checkLabel.appendChild(pre);checkLabel.appendChild(text("span","This person was already serving before September 11, 2001"));preWrap.appendChild(checkLabel);grid.appendChild(name.wrap);grid.appendChild(year.wrap);grid.appendChild(story.wrap);grid.appendChild(reasons.wrap);grid.appendChild(preWrap);card.appendChild(grid);
+    var details=document.createElement("details");details.appendChild(text("summary","View original submission"));var original=(item.original&&item.original.story?item.original.story:"[No written line]")+"\n\nSigned: "+(item.original&&item.original.attribution?item.original.attribution:"[Blank]")+"\nReasons: "+(Array.isArray(item.reasons)?item.reasons.join(" | "):"");details.appendChild(text("div",original,"original"));card.appendChild(details);
+    var actions=document.createElement("div");actions.className="actions";function addButton(label,action,kind){var b=text("button",label,"btn "+(kind||""));b.type="button";b.addEventListener("click",function(){save(item,action,{story:story.input.value,attribution:name.input.value,serviceYear:year.input.value,pre:pre.checked,reasons:reasons.input.value.split("|").map(function(x){return x.trim();}).filter(Boolean)},card);});actions.appendChild(b);}addButton("Save changes","save","ghost");if(item.status!=="approved")addButton("Approve","approve","good");if(item.status==="pending"||item.status==="unpublished")addButton("Reject","reject","danger");if(item.status==="approved")addButton("Unpublish","unpublish","danger");if(item.status==="rejected"||item.status==="unpublished")addButton("Return to pending","restore","ghost");card.appendChild(actions);if(item.moderation&&item.moderation.updatedBy)card.appendChild(text("div","Last changed by "+item.moderation.updatedBy+" · "+formatDate(item.updatedAt),"note"));return card;
+  }
+  function render(){counts();list.innerHTML="";var items=submissions.filter(tabMatches);if(!items.length){list.appendChild(text("div",activeTab==="pending"?"No pending submissions yet. New verified entries will appear here automatically.":"No submissions in this section.","empty"));return;}items.forEach(function(item){list.appendChild(renderCard(item));});}
+  async function load(){if(loading)return;loading=true;setStatus("Loading submissions…");try{var response=await authFetch("/.netlify/functions/moderation",{cache:"no-store"});var data=await response.json();if(!response.ok)throw new Error(data.error||"Could not load submissions.");submissions=data.submissions||[];render();setStatus("Last refreshed "+new Date().toLocaleTimeString());}catch(err){setStatus(err.message||"Could not load submissions.",true);}finally{loading=false;}}
+  async function save(item,action,publicVersion,card){var buttons=card.querySelectorAll("button");buttons.forEach(function(b){b.disabled=true;});setStatus("Saving…");try{var response=await authFetch("/.netlify/functions/moderation",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({key:item.key,action:action,publicVersion:publicVersion})});var data=await response.json();if(!response.ok)throw new Error(data.error||"Could not update submission.");var i=submissions.findIndex(function(x){return x.key===item.key;});if(i>=0)submissions[i]=data.submission;render();setStatus(action==="approve"?"Approved. It is now available to the public exhibit after refresh.":"Submission updated.");}catch(err){setStatus(err.message||"Could not update submission.",true);buttons.forEach(function(b){b.disabled=false;});}}
+  document.querySelectorAll(".tab").forEach(function(button){button.addEventListener("click",function(){activeTab=this.dataset.tab;document.querySelectorAll(".tab").forEach(function(b){b.setAttribute("aria-selected",b===button?"true":"false");});render();});});document.getElementById("refreshButton").addEventListener("click",load);document.getElementById("logoutButton").addEventListener("click",function(){identity.logout();});
+  if(!identity){window.location.replace("/login/");return;}identity.on("init",function(current){if(!current){window.location.replace("/login/");return;}user=current;document.getElementById("staffEmail").textContent=current.email||"Signed in";load();});identity.on("logout",function(){window.location.replace("/login/");});identity.init();setInterval(function(){if(user&&!document.hidden)load();},30000);
 })();
 </script>
 </body>
