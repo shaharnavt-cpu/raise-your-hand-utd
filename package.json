@@ -1,0 +1,10 @@
+{
+  "name": "raise-your-hand-utd",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@netlify/blobs": "10.7.9",
+    "@netlify/functions": "5.3.0",
+    "@netlify/identity": "1.2.0"
+  }
+}
