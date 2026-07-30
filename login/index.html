@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Staff Login — Raise Your Hand</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;500&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <style>
+    :root{--stone:#e9e5dc;--ink:#282c33;--ink2:#4e545e;--line:#c8c1b4;--petrol:#1d486b;--bronze:#8a6a3c}
+    *{box-sizing:border-box}html,body{min-height:100%;margin:0}body{background:var(--stone);color:var(--ink);font-family:"Public Sans",sans-serif;display:grid;place-items:center;padding:24px}
+    main{width:min(560px,100%);border:1px solid var(--line);background:rgba(255,255,255,.38);padding:clamp(26px,6vw,52px)}
+    .tag{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--bronze);font-weight:600}
+    h1{font-family:"Spectral",serif;font-size:clamp(34px,7vw,54px);font-weight:400;line-height:1.05;margin:16px 0}
+    p{color:var(--ink2);line-height:1.65;margin:0 0 24px}.status{min-height:24px;font-size:14px}
+    button,a.button{display:inline-block;border:0;background:var(--petrol);color:white;padding:14px 24px;font:600 13px "Public Sans",sans-serif;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;cursor:pointer}
+    .quiet{display:block;margin-top:20px;color:var(--ink2);font-size:13px}
+  </style>
+</head>
+<body>
+<main>
+  <span class="tag">Military and Veterans Center staff</span>
+  <h1>Staff sign in</h1>
+  <p>Use the invited email address to review and moderate visitor submissions.</p>
+  <button id="loginButton" type="button">Open sign in</button>
+  <p class="status" id="status" role="status" aria-live="polite"></p>
+  <a class="quiet" href="/">Return to the exhibit</a>
+</main>
+<script>
+(function(){
+  var status=document.getElementById('status');
+  var button=document.getElementById('loginButton');
+  var identity=window.netlifyIdentity;
+  if(!identity){status.textContent='The login service could not load. Please refresh.';button.disabled=true;return;}
+  button.addEventListener('click',function(){identity.open('login');});
+  identity.on('init',function(user){
+    if(user){window.location.replace('/admin/');return;}
+    if(window.location.hash){status.textContent='Opening your invitation or account link…';}
+  });
+  identity.on('login',function(){identity.close();window.location.replace('/admin/');});
+  identity.on('error',function(err){status.textContent=err&&err.message?err.message:'Sign in could not be completed.';});
+  identity.init();
+})();
+</script>
+</body>
+</html>

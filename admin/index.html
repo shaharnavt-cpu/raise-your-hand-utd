@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Staff Review — Raise Your Hand</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;500&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <style>
+    :root{--stone:#e9e5dc;--ink:#282c33;--ink2:#4e545e;--line:#c8c1b4;--petrol:#1d486b;--bronze:#8a6a3c}
+    *{box-sizing:border-box}html,body{min-height:100%;margin:0}body{background:var(--stone);color:var(--ink);font-family:"Public Sans",sans-serif;padding:24px}
+    main{max-width:960px;margin:0 auto}.top{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;border-bottom:1px solid var(--line);padding-bottom:20px}
+    .tag{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--bronze);font-weight:600}h1{font-family:"Spectral",serif;font-size:clamp(34px,6vw,52px);font-weight:400;margin:10px 0 0}
+    p{color:var(--ink2);line-height:1.65}.card{margin-top:28px;border:1px solid var(--line);background:rgba(255,255,255,.38);padding:24px}
+    button{border:0;background:var(--petrol);color:white;padding:12px 20px;font:600 12px "Public Sans",sans-serif;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+    button.ghost{background:transparent;color:var(--ink2);border:1px solid var(--line)}#staffEmail{font-size:13px;color:var(--ink2);margin-top:8px}
+  </style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <div><span class="tag">Raise Your Hand</span><h1>Staff review</h1><div id="staffEmail"></div></div>
+    <button class="ghost" id="logoutButton" type="button">Sign out</button>
+  </div>
+  <div class="card">
+    <h2>Login is connected</h2>
+    <p>The moderation queue is the next part of this build. Once connected, this page will show Pending, Approved, and Rejected submissions with edit, approve, reject, and unpublish controls.</p>
+  </div>
+</main>
+<script>
+(function(){
+  var identity=window.netlifyIdentity;
+  if(!identity){window.location.replace('/login/');return;}
+  identity.on('init',function(user){
+    if(!user){window.location.replace('/login/');return;}
+    document.getElementById('staffEmail').textContent=user.email||'Signed in';
+  });
+  identity.on('logout',function(){window.location.replace('/login/');});
+  document.getElementById('logoutButton').addEventListener('click',function(){identity.logout();});
+  identity.init();
+})();
+</script>
+</body>
+</html>
