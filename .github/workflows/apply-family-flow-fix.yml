@@ -1,0 +1,135 @@
+name: Apply family flow fix
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/apply-family-flow-fix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Patch index.html
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+
+          def replace_once(old, new):
+              global s
+              if old not in s:
+                  raise SystemExit(f'Missing expected text: {old[:120]!r}')
+              s = s.replace(old, new, 1)
+
+          replace_once(
+          '''  <section class="screen" id="s-year">''',
+          '''  <section class="screen" id="s-family-era">
+    <span class="tag">A quick distinction</span>
+    <h2>Was your person already serving on September 11, 2001?</h2>
+    <p class="lede">This decides which side of the line their story belongs on. People already in uniform are asked what changed afterward; people who entered later are asked what made them raise their hand.</p>
+    <div class="choices">
+      <button class="choice" id="familyBefore" type="button">Yes — they were already serving<small>They entered service before September 11, 2001.</small></button>
+      <button class="choice" id="familyAfter" type="button">No — they entered after that day<small>They enlisted or commissioned from September 2001 onward.</small></button>
+      <button class="choice" id="familySkip" type="button">My connection does not fit either option<small>Continue to the birth-year mirror without placing a service-year mark.</small></button>
+    </div>
+    <div class="row"><button class="btn quiet" data-go="s-path">Back</button></div>
+  </section>
+
+  <section class="screen" id="s-year">''')
+
+          replace_once(
+          '''    <h2>What year did you enter service?</h2>
+    <p class="lede">Any year. The line runs back well before 2001 — the earliest voice on it entered the Army in 1976.</p>''',
+          '''    <h2 id="preYearQ">What year did you enter service?</h2>
+    <p class="lede" id="preYearSub">Any year. The line runs back well before 2001 — the earliest voice on it entered the Army in 1976.</p>''')
+
+          replace_once(
+          ''' {id:"family",t:"I'm a military family member", s:"A spouse, parent, child, or sibling of someone who served.",    mode:"post"},''',
+          ''' {id:"family",t:"I'm military affiliated",      s:"A spouse, parent, child, sibling, caregiver, or other close connection to someone who served.", mode:"family"},''')
+
+          replace_once(
+          '''    if(p.mode==="pre")show("s-yearpre");
+    else if(p.mode==="post"){
+      $("yearQ").textContent=p.id==="family"?"What year did your person raise their hand?":"What year did you raise your hand?";
+      show("s-year");mark(st.year);
+    }else show("s-birth");''',
+          '''    if(p.mode==="pre"){
+      $("preYearQ").textContent="What year did you enter service?";
+      $("preYearSub").textContent="Any year. The line runs back well before 2001 — the earliest voice on it entered the Army in 1976.";
+      show("s-yearpre");
+    }else if(p.mode==="family"){
+      st.year=null;st.pre=false;mark(null);show("s-family-era");
+    }else if(p.mode==="post"){
+      $("yearQ").textContent="What year did you raise your hand?";
+      show("s-year");mark(st.year);
+    }else show("s-birth");''')
+
+          replace_once(
+          '''function buildChips(list){''',
+          '''$("familyBefore").addEventListener("click",function(){
+  st.mode="pre";st.pre=true;st.year=null;
+  $("preYearQ").textContent="What year did they enter service?";
+  $("preYearSub").textContent="Any year up to 2001. Their mark will appear in the separate ‘already serving’ block at the start of the timeline.";
+  $("preYear").value="";$("preNext").disabled=true;show("s-yearpre");
+});
+$("familyAfter").addEventListener("click",function(){
+  st.mode="post";st.pre=false;st.year=null;
+  $("yearQ").textContent="What year did your person raise their hand?";
+  $("yearNext").disabled=true;mark(null);show("s-year");
+});
+$("familySkip").addEventListener("click",function(){
+  st.mode="none";st.pre=false;st.year=null;mark(null);show("s-birth");
+});
+
+function buildChips(list){''')
+
+          replace_once(
+          '''  $("whyQ").textContent="What changed for you after?";
+  $("whySub").textContent="You didn't decide anything that morning — it was decided around you. Pick as many as are true.";''',
+          '''  if(st.path==="family"){
+    $("whyQ").textContent="What changed for them after?";
+    $("whySub").textContent="They were already serving that morning, so the question is not why they joined. Pick as many changes as are true.";
+  }else{
+    $("whyQ").textContent="What changed for you after?";
+    $("whySub").textContent="You didn't decide anything that morning — it was decided around you. Pick as many as are true.";
+  }''')
+
+          replace_once(
+          '''  $("formQuestion").value=st.pre?"What changed for you after?":"What made you raise your hand?";''',
+          '''  $("formQuestion").value=st.pre
+    ?(st.path==="family"?"What changed for them after?":"What changed for you after?")
+    :(st.path==="family"?"What made them raise their hand?":"What made you raise your hand?");''')
+
+          replace_once(
+          '''    out="<p>You were already there.</p><p>Everyone else on this line decided something that morning or after it. You didn't get to. It was decided around you, and then it kept being decided for the next twenty years.</p>";''',
+          '''    if(st.path==="family") out="<p>Your person was already there.</p><p>They did not make a new decision to serve that morning. The mission changed around them, and the consequences continued for the next twenty years.</p>";
+    else out="<p>You were already there.</p><p>Everyone else on this line decided something that morning or after it. You didn't get to. It was decided around you, and then it kept being decided for the next twenty years.</p>";''')
+
+          replace_once(
+          '''    l0.textContent="Here is someone else who was already in uniform.";''',
+          '''    l0.textContent=st.path==="family"?"Here is another person who was already in uniform.":"Here is someone else who was already in uniform.";''')
+
+          replace_once(
+          '''      $("cnt").textContent="0";$("yearNext").disabled=true;$("birthNext").disabled=true;$("preNext").disabled=true;''',
+          '''      $("preYearQ").textContent="What year did you enter service?";
+      $("preYearSub").textContent="Any year. The line runs back well before 2001 — the earliest voice on it entered the Army in 1976.";
+      $("cnt").textContent="0";$("yearNext").disabled=true;$("birthNext").disabled=true;$("preNext").disabled=true;''')
+
+          p.write_text(s, encoding='utf-8')
+      - name: Commit patched file
+        shell: bash
+        run: |
+          rm -f .github/workflows/apply-family-flow-fix.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Fix military-affiliated pre-2001 flow"
+          git push
