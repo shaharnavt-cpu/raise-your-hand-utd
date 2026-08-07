@@ -1,2 +1,0 @@
-Apply the curated story batch and refresh exhibit notes.
-Retriggered after refreshing GitHub connection on 2026-08-07.
