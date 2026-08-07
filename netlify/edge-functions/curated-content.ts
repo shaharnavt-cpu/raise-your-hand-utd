@@ -1,0 +1,91 @@
+import type { Context } from "@netlify/edge-functions";
+
+const CURATED_VOICES = ` {y:2004,name:"Tatchie Manso",role:"U.S. Army · enlisted April 2004 · Ivory Coast / New York",kind:"voice",
+  body:"He was a twenty-year-old college student working seven blocks from the World Trade Center when the attacks happened. In the weeks afterward he decided he wanted to serve and reached a military entrance station that October, but his father asked him to finish his degree first. Manso graduated in February 2004 and joined the Army that April. The decision began in 2001; the uniform came three years later.",
+  src:"U.S. Army, January 2020",url:"https://www.army.mil/article/231531/how_911_inspired_a_life_of_service_for_army_officer"},
+ {y:2005,name:"Andre Stetz",role:"U.S. Navy · logistics specialist · Polish immigrant",kind:"voice",
+  body:"He had come from Poland to New York in 1999 and built a life in a country his family associated with freedom. He watched the towers fall and began asking what he could do for the city and country that had welcomed him. The permanent-residency process took time; once he had his green card, he joined the Navy in 2005 as a storekeeper, now called a logistics specialist.",
+  src:"U.S. Navy, September 2020",url:"https://www.navy.mil/Press-Office/News-Stories/display-news/Article/2346059/uss-sterett-sailor-polish-immigrant-remembers-911-being-inspired-to-serve/index.html"},
+ {y:2005,name:"Nathan Ramsey",role:"U.S. Air Force · aerial port · Bronx, New York",kind:"voice",
+  body:"He was a freshman at DeWitt Clinton High School in the Bronx, close enough to see what remained of the World Trade Center from his classroom. He graduated in June 2005 and joined the Air Force that November, saying the attacks were part of what pushed him toward service. His older brother was in the Army and helped steer him toward the Air Force instead.",
+  src:"U.S. Air Force, September 2006",url:"https://www.af.mil/News/Article-Display/Article/143596/airmen-reflect-upon-personal-experiences-of-911/"},
+ {y:2006,name:"Alexander Vassilopoulos",role:"U.S. Marine Corps Reserve · assaultman / intelligence cell · New York",kind:"voice",
+  body:"An NYU film-school graduate and independent filmmaker in New York, he joined the Marine Corps Reserve in 2006 after being directly affected by September 11. The way he explained the choice was unusually technical: better intelligence, biometrics, and other tools could strip away the concealment terrorists depended on and help prevent another attack.",
+  src:"U.S. Marine Corps, July 2008",url:"https://www.marines.mil/News/News-Display/Article/521338/marines-hone-sleuth-skills/"},
+ {y:2008,name:"Trevor Howard",role:"U.S. Army · petroleum supply specialist · New York",kind:"voice",
+  body:"He was thirty-six, married with three children, a college graduate, and had been out of work for fourteen months during the recession. A neighbor suggested the Army; after talking it through with his wife, Howard enlisted in August 2008 to provide for his family. He entered from necessity and then discovered that he genuinely liked being a soldier.",
+  src:"U.S. Army, October 2010",url:"https://www.army.mil/article/46680/from_the_unemployment_line_to_the_border_line"},
+ {y:2008,name:"Loren Sink",role:"U.S. Army chaplain · joined at age 47",kind:"voice",
+  body:"He had been an ordained minister since 1987 and lived in Virginia's Tidewater military community. After September 11, he and his wife watched service members come home carrying injuries and experiences that needed care, and the sense that he was supposed to serve them kept growing. In 2008, at forty-seven, he joined the Army as a chaplain.",
+  src:"U.S. Army, September 2013",url:"https://www.army.mil/article/112190/suicide_awareness_and_prevention_a_year_round_priority_for_82nd_cab_leaders"},
+ {y:2010,name:"Jason Stoterau",role:"U.S. Army · field artillery officer · Army Reserve",kind:"voice",
+  body:"He was thirteen and in eighth grade when the attacks happened. September 11 planted the idea of service, but the years that followed did the rest: recruiters at school, the wars in Iraq and Afghanistan, and a family history stretching through World War II and Korea. He went to college first, then commissioned into the Army in December 2010.",
+  src:"U.S. Army, September 2025",url:"https://www.army.mil/article/288348/september_11_attacks_led_junior_high_student_towards_a_journey_of_service"},
+ {y:2012,name:"Gleimarie Mendoza",role:"U.S. Army · pharmacy technician · Army family",kind:"voice",
+  body:"She grew up in an Army family but initially tried to build a different life. After a difficult senior year, she left Texas for college in Florida and pursued a field that never felt like hers. Eventually she recognized that the military culture she had grown up around was where she wanted to be, returned to Texas, and enlisted in the Army in 2012.",
+  src:"U.S. Army, June 2019",url:"https://www.army.mil/article/223528/sgt_gleimarie_mendoza_making_valuable_memories"},
+ {y:2015,name:"Franklin Castro",role:"U.S. Army · M1 armor crewman · Boston",kind:"voice",
+  body:"Education was not an afterthought for him; it was one of the incentives to sign the papers. Castro joined the Army in 2015 in large part because of the academic opportunities it promised. Years later, preparing to leave active duty, he was still using those benefits and planning the next stage of his education.",
+  src:"U.S. Army, November 2022",url:"https://www.army.mil/article/262028/fort_irwin_education_center_hosts_education_fair"},
+ {y:2022,name:"Kareem Howell",role:"U.S. Air Force · fuels management specialist · Jamaica / New York",kind:"voice",
+  body:"He grew up in Jamaica and moved to the United States in 2015. College and a job around aircraft at JFK Airport fed a long-standing interest in aviation, but the pandemic, reduced work, and a new daughter put pressure on the life he was building. Howell joined the Air Force in 2022 to create more stability for his wife and child while continuing toward his goal of becoming an aviator.",
+  src:"U.S. Air Forces Central, January 2024",url:"https://www.afcent.af.mil/Units/379th-Air-Expeditionary-Wing/News/Display/Article/3633632/airman-joins-air-force-to-chase-aviation-dream-better-life-for-his-family/"},
+`;
+
+const replacements: Array<[string, string]> = [
+  [
+    '<p>Working prototype. Published stories are static and read-only. New visitor entries are submitted privately through Netlify Forms for staff review; they do not appear publicly until approved and added to the published story file.</p>',
+    '<p>Beta prototype. Curated source accounts are read-only. New visitor entries are submitted privately through Netlify Forms, copied into the staff moderation queue, and do not appear publicly until a staff member approves them. Approved entries are then loaded into the public timeline automatically.</p>',
+  ],
+  [
+    '<p>Every account here belongs to a real, named person and was published by a named outlet. Each is retold in the exhibit\'s own words with a link back to the original — these are summaries, not licensed reproductions. Reporting by the <em>Tennessee Register</em>, TIME, the USO, the Associated Press, <em>The World</em> (PRX), Connecting Vets, American Forces Press Service, and Military.com, 2011–2025.</p>',
+    '<p>Every curated voice here comes from a documented, published account or reporting source. Each is retold in the exhibit\'s own words with a link back to the original — these are summaries, not licensed reproductions. The current collection draws from the <em>Tennessee Register</em>, TIME, the USO, the Associated Press, <em>The World</em> (PRX), Connecting Vets, American Forces Press Service, Military.com, the U.S. Army, U.S. Navy, U.S. Air Force, and U.S. Marine Corps.</p>',
+  ],
+  [
+    '<p><strong>Before any of this goes on a public screen,</strong> comms should either link out to each original or secure permission from the publisher — and ideally from the veteran.</p>',
+    '<p><strong>For exhibition use,</strong> each curated account links back to its original source. Staff should still confirm communications and copyright guidance, and seek permission from the publisher and ideally the veteran before using any account at length or outside this prototype.</p>',
+  ],
+  [
+    '<p>Most years on this timeline currently show one or two voices, or none. That is honest: it reflects what we have actually sourced, not what the exhibit could hold. The mockups showed a dozen or more per year. Filling the line is the collection work, and it is the main thing standing between this prototype and a finished exhibit.</p>',
+    '<p>The curated line now contains 27 sourced entries before any approved visitor submissions are added. Coverage is deliberately uneven: some years hold several voices and others are still empty. That reflects what has actually been sourced rather than inventing density. The beta phase will also show how the line behaves as approved community stories begin to fill those gaps.</p>',
+  ],
+  [
+    `    <h4>Still needed</h4>
+    <ul>
+      <li>A staff-owned moderation workflow for reviewing Netlify submissions and moving approved entries into the published story file.</li>
+      <li><strong>Nothing user-submitted should reach a public screen unreviewed.</strong> The current build stores new entries privately and requires a separate approval step.</li>
+      <li>Written permissions for any account shown at length.</li>
+      <li>A staffed table rather than an unattended kiosk.</li>
+      <li>Accessibility pass: screen reader, large-text mode, seated-height screen.</li>
+    </ul>`,
+    `    <h4>Before the event</h4>
+    <ul>
+      <li>Beta feedback across phones, desktop and tablet browsers, and the eventual event display.</li>
+      <li>Test the interface on the actual screen in the bright event space, including seated-height use.</li>
+      <li>Confirm communications, copyright, and permission guidance for the curated source accounts.</li>
+      <li>Keep sourcing additional voices and invite community submissions to reduce empty years without manufacturing density.</li>
+      <li><strong>Nothing user-submitted reaches the public timeline unreviewed.</strong> Staff can edit, approve, reject, unpublish, or return an entry to the pending queue.</li>
+      <li>Accessibility pass: screen reader behavior, keyboard navigation, contrast, and a practical large-text option.</li>
+    </ul>`,
+  ],
+];
+
+export default async (_request: Request, context: Context) => {
+  const response = await context.next();
+  const contentType = response.headers.get("content-type") || "";
+  if (!contentType.includes("text/html")) return response;
+
+  let html = await response.text();
+  const voiceMarker = "var VOICES=[\n";
+  if (!html.includes(voiceMarker)) return new Response(html, response);
+
+  html = html.replace(voiceMarker, voiceMarker + CURATED_VOICES);
+  for (const [from, to] of replacements) html = html.replace(from, to);
+
+  const headers = new Headers(response.headers);
+  headers.set("Cache-Control", "no-store, max-age=0");
+  headers.set("X-Raise-Your-Hand-Content", "curated-27-v1");
+  return new Response(html, { status: response.status, statusText: response.statusText, headers });
+};
+
+export const config = { path: "/" };
